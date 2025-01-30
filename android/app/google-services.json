@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "577708149691",
+    "project_id": "khata-flutter",
+    "storage_bucket": "khata-flutter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:577708149691:android:1ac47dad0f6ca12525d29e",
+        "android_client_info": {
+          "package_name": "com.example.app_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGAjW0qzFILdcsEMhYmeMChgKtSe8jv_I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
