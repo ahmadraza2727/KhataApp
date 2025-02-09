@@ -10,42 +10,44 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text("this is text ois"),
-        SizedBox(height: 20),
-        Placeholder(
-          fallbackHeight: 150,
-        ),
-        SizedBox(height: 20),
-        Placeholder(
-          fallbackHeight: 100,
-        ),
-        SizedBox(height: 20),
-        Placeholder(
-          fallbackHeight: 100,
-        ),
-        SizedBox(height: 20),
-        Placeholder(
-          fallbackHeight: 100,
-        ),
-        SizedBox(height: 20),
-        Placeholder(
-          fallbackHeight: 100,
-        ),
-        SizedBox(height: 20),
-        Placeholder(
-          fallbackHeight: 100,
-        ),
-        SizedBox(height: 20),
-        Placeholder(
-          fallbackHeight: 100,
-        ),
-        SizedBox(height: 20),
-        Placeholder(
-          fallbackHeight: 100,
-        ),
-      ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Text("this is text ois"),
+          SizedBox(height: 20),
+          Placeholder(
+            fallbackHeight: 150,
+          ),
+          SizedBox(height: 20),
+          Placeholder(
+            fallbackHeight: 100,
+          ),
+          SizedBox(height: 20),
+          Placeholder(
+            fallbackHeight: 100,
+          ),
+          SizedBox(height: 20),
+          Placeholder(
+            fallbackHeight: 100,
+          ),
+          SizedBox(height: 20),
+          Placeholder(
+            fallbackHeight: 100,
+          ),
+          SizedBox(height: 20),
+          Placeholder(
+            fallbackHeight: 100,
+          ),
+          SizedBox(height: 20),
+          Placeholder(
+            fallbackHeight: 100,
+          ),
+          SizedBox(height: 20),
+          Placeholder(
+            fallbackHeight: 100,
+          ),
+        ],
+      ),
     );
   }
 }

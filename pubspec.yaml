@@ -39,6 +39,10 @@ dependencies:
   sqflite: ^2.4.1
   path_provider: ^2.1.5
   path: ^1.9.0
+  firebase_auth: ^5.4.1
+  # flutter_contacts: ^6.0.0  # Modern alternative to contacts_service
+  permission_handler: ^10.4.4  # For handling permissions
+  flutter_contacts: ^1.1.9+2
 
 
 dev_dependencies:

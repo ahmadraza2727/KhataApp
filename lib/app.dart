@@ -1,16 +1,14 @@
-import 'dart:ui';
-
-import 'package:app_1/colors/primary_colors.dart';
 import 'package:app_1/components/main_appbar.dart';
 import 'package:app_1/components/menu_options.dart';
 import 'package:app_1/components/search_feild.dart';
+import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/provider.dart';
 import 'package:app_1/screens/calender_screen.dart';
+import 'package:app_1/screens/contact_picker.dart';
 import 'package:app_1/screens/home_screen.dart';
 import 'package:app_1/screens/inform_screen.dart';
 import 'package:app_1/screens/people_screen.dart';
 import 'package:app_1/screens/transaction_screen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,15 +16,10 @@ class CenterApp extends StatelessWidget {
   const CenterApp({super.key});
   @override
   Widget build(BuildContext context) {
-  CounterProvider provider = Provider.of(context);
-    final String sTitle = "App Bar";
-    void onTapReloadButton() {
-      if (kDebugMode) {
-        print("reload button clicked");
-      }
-    }
+    CounterProvider provider = Provider.of(context);
 
     List<Widget> screens = [
+      // ContactListScreen(),
       HomeScreen(),
       TransactionScreen(),
       CalenderScreen(),
@@ -35,7 +28,6 @@ class CenterApp extends StatelessWidget {
     ];
 
     return Scaffold(
-    
       backgroundColor: Primarycolors.backgroundColor,
       body: SafeArea(
         child: Center(
@@ -50,14 +42,12 @@ class CenterApp extends StatelessWidget {
                 SearchFeild(),
                 MenuOptions(),
                 Expanded(
-                  child: SingleChildScrollView
-                  (
-                    child: IndexedStack(
-                    index: provider.getCurrentPage(),
+                  // INFO : indexed stack
+                  child: IndexedStack(
+                    index: provider.getCurrentPage() as int,
                     children: screens,
-                    ),
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -66,36 +56,36 @@ class CenterApp extends StatelessWidget {
     );
   }
 
-  SizedBox newMethodsizebox() {
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-          color: Colors.blueGrey,
-          elevation: 10,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                sigmaX: 10,
-                sigmaY: 10,
-              ),
-              child: const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Text(
-                      "this is the text ",
-                      style: TextStyle(backgroundColor: Colors.redAccent),
-                    ),
-                    Icon(Icons.price_change_sharp)
-                  ],
-                ),
-              ),
-            ),
-          )),
-    );
-  }
+//   SizedBox newMethodsizebox() {
+//     return SizedBox(
+//       width: double.infinity,
+//       child: Card(
+//           color: Colors.blueGrey,
+//           elevation: 10,
+//           shape: RoundedRectangleBorder(
+//             borderRadius: BorderRadius.circular(10),
+//           ),
+//           child: ClipRRect(
+//             borderRadius: BorderRadius.circular(10),
+//             child: BackdropFilter(
+//               filter: ImageFilter.blur(
+//                 sigmaX: 10,
+//                 sigmaY: 10,
+//               ),
+//               child: const Padding(
+//                 padding: EdgeInsets.all(8.0),
+//                 child: Column(
+//                   children: [
+//                     Text(
+//                       "this is the text ",
+//                       style: TextStyle(backgroundColor: Colors.redAccent),
+//                     ),
+//                     Icon(Icons.price_change_sharp)
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           )),
+//     );
+//   }
 }

@@ -1,4 +1,5 @@
-import 'package:app_1/colors/primary_colors.dart';
+import 'package:app_1/constants/predefined.dart';
+import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:iconic/iconic.dart';
@@ -34,11 +35,10 @@ class _MenuOptionsState extends State<MenuOptions> {
                     scrollDirection: Axis.horizontal, // Horizontal scrolling
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
-                      children: List.generate(provider.icons_List.length, (index) {
+                      children: List.generate(icons_List.length, (index) {
                         return GestureDetector(
                           onTap: () {
                             provider.setCurrentPage(index);
-                            
                           },
                           child: Card(
                             elevation: 2,
@@ -52,7 +52,9 @@ class _MenuOptionsState extends State<MenuOptions> {
                             child: Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color:provider.getCurrentPage()==index? Primarycolors.darkColor:Primarycolors.primaryColor,
+                                  color: provider.getCurrentPage() == index
+                                      ? Primarycolors.darkColor
+                                      : Primarycolors.primaryColor,
                                   border: Border.all(
                                     color: Colors.transparent,
                                     width: 0,
@@ -61,7 +63,7 @@ class _MenuOptionsState extends State<MenuOptions> {
                                     Radius.circular(15),
                                   ),
                                 ),
-                                child: Icon(provider.icons_List[index])),
+                                child: Icon(icons_List[index])),
                           ),
                         );
                       }),

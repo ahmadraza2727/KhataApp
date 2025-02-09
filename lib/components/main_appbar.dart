@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:app_1/colors/primary_colors.dart';
+import 'package:app_1/components/dialogs.dart';
+import 'package:app_1/constants/predefined.dart';
+import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/provider.dart';
+import 'package:app_1/services/auth/auth_services.dart';
 import 'package:flutter/material.dart';
+import 'package:iconic/iconic.dart';
 import 'package:provider/provider.dart';
 
 class MainAppBar extends StatefulWidget {
@@ -15,28 +19,35 @@ class MainAppBar extends StatefulWidget {
 
 class _MainAppBarState extends State<MainAppBar> {
   bool changeRad = true;
-  late Timer _timer;
 
   @override
   void initState() {
     super.initState();
-    print("initState called");
-    // startTimer(); // Start the periodic timer
-  }
-
-  void startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
-      setState(() {
-        changeRad = !changeRad; // Toggle the value
-        print("ChangeRad toggled: $changeRad"); // Debug output
-      });
-    });
   }
 
   @override
   void dispose() {
-    _timer.cancel(); // Cancel the timer to avoid memory leaks
     super.dispose();
+  }
+
+  void handleVerificationIconClick(CounterProvider provider) {
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil(email_verification_route, (route) => false);
+  }
+
+  void handleLoginIconClick(CounterProvider provider) {
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil(login_route, (route) => false);
+  }
+
+  void handleLogoutIconClick(CounterProvider provider) async {
+    final bool confirm = await showConfirmationDialog(
+        context, "Are You Sure", "Do you Want To Log Out");
+    if (confirm) {
+      await AuthServices.firebase().logout();
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil(home_route, (route) => false);
+    }
   }
 
   void handleSearchIconClick(CounterProvider provider) {
@@ -93,7 +104,8 @@ class _MainAppBarState extends State<MainAppBar> {
                       ),
                     ],
                   ),
-                  child: iconRow(provider),
+                  // INFO : Icnon row
+                  child: iconRow(provider, context),
                 ),
               ),
             ),
@@ -125,6 +137,7 @@ class _MainAppBarState extends State<MainAppBar> {
                     child: Text(
                       "KHATA",
                       style: TextStyle(
+                        fontFamily: "Sans",
                         color: Primarycolors.textDark,
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
@@ -154,10 +167,35 @@ class _MainAppBarState extends State<MainAppBar> {
     );
   }
 
-  Row iconRow(CounterProvider provider) {
+  Row iconRow(CounterProvider provider, BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        if (AuthServices.firebase().currentUser != null &&
+            !AuthServices.firebase().currentUser!.isEmailVerified)
+          InkWell(
+            onTap: () => handleVerificationIconClick(provider),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Icon(Icons.verified_user, color: Primarycolors.textDark),
+            ),
+          ),
+        if (AuthServices.firebase().currentUser == null)
+          InkWell(
+            onTap: () => handleLoginIconClick(provider),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Icon(Icons.login, color: Primarycolors.textDark),
+            ),
+          ),
+        if (AuthServices.firebase().currentUser != null)
+          InkWell(
+            onTap: () => handleLogoutIconClick(provider),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Icon(Icons.logout, color: Primarycolors.textDark),
+            ),
+          ),
         InkWell(
           onTap: () => handleSearchIconClick(provider),
           child: Container(

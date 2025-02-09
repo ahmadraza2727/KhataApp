@@ -1,4 +1,4 @@
-import 'package:app_1/colors/primary_colors.dart';
+import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -31,7 +31,9 @@ class _SearchFeildState extends State<SearchFeild> {
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: "Enter something...",
+                      prefixIcon: Icon(Icons.search),
+                      labelText: "Search",
+                      // hintText: "Enter something...",
                     ),
                     style: TextStyle(
                       color: Primarycolors.textDark, // Dark text for input
