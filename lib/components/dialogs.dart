@@ -1,29 +1,36 @@
-
 import 'package:flutter/material.dart';
 
-Future<bool> showConfirmationDialog(BuildContext context, String title, String text) async {
+Future<bool> showConfirmationDialog(
+  BuildContext context,
+  String title,
+  String text,
+) async {
   return await showDialog<bool>(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text(title),
-        content: Text(text),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false), // Cancel
-            child: Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true), // OK
-            child: Text("OK"),
-          ),
-        ],
-      );
-    },
-  ) ?? false; // If dismissed, return false
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(title),
+            content: Text(text),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false), // Cancel
+                child: Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true), // OK
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
+      ) ??
+      false; // If dismissed, return false
 }
 
-Future<void> showErrorDialog(BuildContext context, String errorMessage) async {
+Future<void> showErrorDialog(
+  BuildContext context,
+  String errorMessage,
+) {
   return showDialog<void>(
     context: context,
     builder: (BuildContext context) {
@@ -32,7 +39,7 @@ Future<void> showErrorDialog(BuildContext context, String errorMessage) async {
         content: Text(errorMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(), 
+            onPressed: () => Navigator.of(context).pop(),
             child: Text("OK"),
           ),
         ],
@@ -41,7 +48,10 @@ Future<void> showErrorDialog(BuildContext context, String errorMessage) async {
   );
 }
 
-Future<void> showInformationDialog(BuildContext context, String message) async {
+Future<void> showInformationDialog(
+  BuildContext context,
+  String message,
+) async {
   return showDialog<void>(
     context: context,
     builder: (BuildContext context) {
@@ -59,7 +69,8 @@ Future<void> showInformationDialog(BuildContext context, String message) async {
   );
 }
 
-Future<void> showModernDialog(BuildContext context, String title, String message) async {
+Future<void> showModernDialog(
+    BuildContext context, String title, String message) async {
   return showDialog<void>(
     context: context,
     barrierDismissible: true, // Allows dismissing by tapping outside
@@ -71,7 +82,8 @@ Future<void> showModernDialog(BuildContext context, String title, String message
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(title,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               SizedBox(height: 10),
               Text(message, textAlign: TextAlign.center),
               SizedBox(height: 20),

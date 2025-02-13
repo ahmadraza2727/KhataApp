@@ -6,7 +6,9 @@ class AuthServices extends AuthProvider {
   final AuthProvider provider;
 
   @override
-  Future<void> initialize() => provider.initialize();
+  Future<void> initialize() async {
+    await provider.initialize();
+  }
 
   AuthServices({required this.provider});
   factory AuthServices.firebase() =>

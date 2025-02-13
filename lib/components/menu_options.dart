@@ -17,6 +17,7 @@ class _MenuOptionsState extends State<MenuOptions> {
 
   @override
   Widget build(BuildContext context) {
+    print('building menu options screen');
     final provider = Provider.of<CounterProvider>(context);
 
     return Stack(

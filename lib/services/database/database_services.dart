@@ -127,56 +127,71 @@ class UserDatabase {
   }
 }
 
-class KhataServices {
+class KhataDatabaseServices {
+  // Future<void> initialize() async {
+  //   await getDatabase();
+  //   await cacheAllPerson();
+  // }
+
   // Private constructor
-  KhataServices._internal();
+  KhataDatabaseServices._internal();
 
   // The single instance of the class
-  static final KhataServices _khataService = KhataServices._internal();
+  static final KhataDatabaseServices _khataService =
+      KhataDatabaseServices._internal();
 
   // Factory constructor that returns the same instance
-  factory KhataServices() => _khataService;
 
-  List<PersonDatabase> _persons = [];
+  factory KhataDatabaseServices() => _khataService;
 
-  final _personStreamController =
-      StreamController<List<PersonDatabase>>.broadcast();
+  // List<PersonDatabase> _persons = [];
+  //
+  // final _personStreamController =
+  //     StreamController<List<PersonDatabase>>.broadcast();
+  //
+  // Future<void> cacheAllPerson() async {
+  //   try {
+  //     final persons = await getAllPerson();
+  //     print("[DEBUG] Cached ${persons.length} persons");
+  //     _persons = persons.toList();
+  //     _personStreamController.sink.add(_persons); // Force emit the new list
+  //   } catch (e) {
+  //     print("[ERROR] cacheAllPerson: $e");
+  //     _personStreamController.sink.addError(e);
+  //   }
+  // }
 
-  Future<void> cacheAllPerson() async {
-    final persons = await getAllPerson();
-    _persons = persons.toList();
-    _personStreamController.add(_persons);
-  }
-
-  Stream<List<PersonDatabase>> get allPersons => _personStreamController.stream;
+//INFO : this is the global database instance
   static Database? _database;
-
+//INFO: open the database
   Future<void> open() async {
-    // INFO: if database already exists
-    if (_database != null) {
-      throw DatabaseAlreadyOpenException();
-    }
+    if (_database != null) return;
+
     try {
-      Directory documentDirectory = await getApplicationDocumentsDirectory();
-      final String databasePath = join(documentDirectory.path, khata_database);
-      final database = await openDatabase(
-        databasePath,
+      final Directory docDir = await getApplicationDocumentsDirectory();
+      final String dbPath = join(docDir.path, khata_database);
+
+      _database = await openDatabase(
+        dbPath,
         version: 1,
-        onConfigure: (db) async => await db.execute('PRAGMA foreign_keys = ON'),
+        onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
+        onCreate: (db, version) async {
+          // Create tables if they don't exist
+          await db.execute(createUserTableQuery);
+          await db.execute(createPersonTableQuery);
+          await db.execute(createTransactionTableQuery);
+        },
       );
-      _database = database;
 
-      // INFO : execute the sql querues from predifined.dart
-      await database.execute(createUserTableQuery);
-      await database.execute(createPersonTableQuery);
-      await database.execute(createTransactionTableQuery);
-
-      await cacheAllPerson();
-    } on MissingPlatformDirectoryException {
+      // Load initial data after opening
+      // await cacheAllPerson();
+    } catch (e) {
+      print("[ERROR] openDatabase: $e");
       rethrow;
     }
   }
 
+//INFO:close the database instance
   Future<void> close() async {
     final database = _database;
     // INFO: if database does not exists
@@ -188,6 +203,7 @@ class KhataServices {
     }
   }
 
+  //INFO: create a database instance of not exist and return
   Future<Database> getDatabase() async {
     if (_database == null) {
       try {
@@ -199,6 +215,7 @@ class KhataServices {
     return _database!;
   }
 
+  //INFO: delete a database user object
   Future<void> deleteUser({required String email}) async {
     final Database database = await getDatabase();
     final int deleteCount = await database.delete(
@@ -211,6 +228,7 @@ class KhataServices {
     }
   }
 
+  // INFO : create a database user from an AuthUser
   Future<UserDatabase> createUserFromAuthUser({required AuthUser user}) async {
     final Database database = await getDatabase();
     final List<Map<String, Object?>> result = await database.query(
@@ -232,6 +250,7 @@ class KhataServices {
     return ud;
   }
 
+//INFO: create a databse user from email
   Future<UserDatabase> createUser({required String email}) async {
     final Database database = await getDatabase();
     final List<Map<String, Object?>> result = await database.query(
@@ -253,6 +272,7 @@ class KhataServices {
     return ud;
   }
 
+// INFO : get a database user from an AuthUser
   Future<UserDatabase> getUserFromAuthUser({required AuthUser user}) async {
     final Database database = await getDatabase();
     final List<Map<String, Object?>> result = await database.query(
@@ -262,12 +282,14 @@ class KhataServices {
       whereArgs: [user.email.toLowerCase()],
     );
     if (result.isEmpty) {
-      throw DatabaseUserNotFoundException();
+      final ud = await createUser(email: user.email.toLowerCase());
+      return ud;
     }
     final ud = UserDatabase.fromRow(result.first);
     return ud;
   }
 
+//INFO:  get a databse user from email
   Future<UserDatabase> getUser({required String email}) async {
     final Database database = await getDatabase();
     final List<Map<String, Object?>> result = await database.query(
@@ -277,12 +299,14 @@ class KhataServices {
       whereArgs: [email.toLowerCase()],
     );
     if (result.isEmpty) {
-      throw DatabaseUserNotFoundException();
+      final ud = await createUser(email: email);
+      return ud;
     }
     final ud = UserDatabase.fromRow(result.first);
     return ud;
   }
 
+// INFO: create a person databas eobject
   Future<PersonDatabase> createPerson({
     required String contactId,
     required String name,
@@ -320,9 +344,6 @@ class KhataServices {
       dueDate: DateTime.now(),
     );
 
-    _persons.add(pd);
-    _personStreamController.add(_persons);
-
     return pd;
   }
 
@@ -341,26 +362,43 @@ class KhataServices {
     }
     final pd = PersonDatabase.fromRow(result.first);
 
-    _persons.removeWhere((person) => person.contactId == pd.contactId);
-
-    _persons.add(pd);
-    _personStreamController.add(_persons);
     return pd;
   }
 
   Future<Iterable<PersonDatabase>> getAllPerson() async {
     final Database database = await getDatabase();
-    final List<Map<String, Object?>> result = await database.query(
-      person_table_khata_database,
-    );
-    if (result.isEmpty) {
-      throw DatabasePersonNotFoundException();
+    try {
+      final List<Map<String, Object?>> result =
+          await database.query(person_table_khata_database);
+      print("[DEBUG] getAllPerson found ${result.length} entries");
+      return result.map((person) => PersonDatabase.fromRow(person));
+    } catch (e) {
+      print("[ERROR] getAllPerson: $e");
+      rethrow;
     }
-    final pd = result.map((person) => PersonDatabase.fromRow(person));
-    print("getting all persons");
-    print(pd);
-    return pd;
   }
+
+  // Future<Iterable<PersonDatabase>> ____getAllPerson() async {
+  //   final Database database = await getDatabase();
+  //   final List<Map<String, Object?>> result = await database.query(
+  //     person_table_khata_database,
+  //   );
+  //   return result.map((person) => PersonDatabase.fromRow(person));
+  // }
+  //
+  // Future<Iterable<PersonDatabase>> __getAllPerson() async {
+  //   final Database database = await getDatabase();
+  //   final List<Map<String, Object?>> result = await database.query(
+  //     person_table_khata_database,
+  //   );
+  //   if (result.isEmpty) {
+  //     throw DatabasePersonNotFoundException();
+  //   }
+  //   final pd = result.map((person) => PersonDatabase.fromRow(person));
+  //   print("getting all persons");
+  //   print(pd);
+  //   return pd;
+  // }
 
   Future<PersonDatabase> updatePerson(
       {required String contactId,
@@ -416,9 +454,6 @@ class KhataServices {
       }
     }
     final pd = await getPerson(contactId: person.contactId);
-    _persons.removeWhere((person) => person.contactId == pd.contactId);
-    _persons.add(pd);
-    _personStreamController.add(_persons);
     return pd;
   }
 

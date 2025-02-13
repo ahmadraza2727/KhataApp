@@ -1,11 +1,11 @@
 import 'package:app_1/constants/predefined.dart';
 import 'package:flutter/material.dart';
-import 'package:iconic/iconic.dart';
 
-class CounterProvider with ChangeNotifier {
+class NavigationProvider with ChangeNotifier {
   late screenNames currentScreenName;
-  CounterProvider() {
+  NavigationProvider() {
     currentScreenName = screenNames.HOME;
+    // initialize();
   }
 
   bool _searchTextFeildOpenStatus = false;
@@ -36,45 +36,7 @@ class CounterProvider with ChangeNotifier {
     notifyListeners(); // Notify all listeners about the change
   }
 
-  // bool? toggle_currentPageHome() {
-  //   bool? ret = icons_boolList["HOME"];
-  //   icons_boolList["HOME"] = !(icons_boolList["HOME"] ?? false);
-  //   notifyListeners(); // Notify all listeners about the change
-  //   return ret;
-  // }
-  //
-  // bool? toggle_currentPageTransactions() {
-  //   bool? ret = icons_boolList["TRANSACTIONS"];
-  //   icons_boolList["TRANSACTIONS"] = !(icons_boolList["TRANSACTIONS"] ?? false);
-  //   notifyListeners(); // Notify all listeners about the change
-  //   return ret;
-  // }
-  //
-  // bool? toggle_currentPageCalender() {
-  //   bool? ret = icons_boolList["CALENDER"];
-  //   icons_boolList["CALENDER"] = !(icons_boolList["CALENDER"] ?? false);
-  //   notifyListeners(); // Notify all listeners about the change
-  //   return ret;
-  // }
-  //
-  // bool? toggle_currentPagePeople() {
-  //   bool? ret = icons_boolList["PEOPLE"];
-  //   icons_boolList["PEOPLE"] = !(icons_boolList["PEOPLE"] ?? false);
-  //   notifyListeners(); // Notify all listeners about the change
-  //   return ret;
-  // }
-  //
-  // bool? toggle_currentPageInform() {
-  //   bool? ret = icons_boolList["INFORM"];
-  //   icons_boolList["INFORM"] = !(icons_boolList["INFORM"] ?? false);
-  //   notifyListeners(); // Notify all listeners about the change
-  //   return ret;
-  // }
-
   int? getCurrentPage() {
-    // for (int i = 0; i < icons_List.length; i++) {
-    //   if (icons_boolList[icons_Names[i]] == true) return i;
-    // }
     return currentScreenName.index;
   }
 

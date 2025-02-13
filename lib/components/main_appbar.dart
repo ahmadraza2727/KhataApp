@@ -1,13 +1,10 @@
-import 'dart:async';
 import 'dart:ui';
-
 import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/provider.dart';
 import 'package:app_1/services/auth/auth_services.dart';
 import 'package:flutter/material.dart';
-import 'package:iconic/iconic.dart';
 import 'package:provider/provider.dart';
 
 class MainAppBar extends StatefulWidget {
@@ -30,17 +27,17 @@ class _MainAppBarState extends State<MainAppBar> {
     super.dispose();
   }
 
-  void handleVerificationIconClick(CounterProvider provider) {
+  void handleVerificationIconClick() {
     Navigator.of(context)
         .pushNamedAndRemoveUntil(email_verification_route, (route) => false);
   }
 
-  void handleLoginIconClick(CounterProvider provider) {
+  void handleLoginIconClick() {
     Navigator.of(context)
         .pushNamedAndRemoveUntil(login_route, (route) => false);
   }
 
-  void handleLogoutIconClick(CounterProvider provider) async {
+  void handleLogoutIconClick() async {
     final bool confirm = await showConfirmationDialog(
         context, "Are You Sure", "Do you Want To Log Out");
     if (confirm) {
@@ -62,8 +59,8 @@ class _MainAppBarState extends State<MainAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    print("Building MainAppBar");
     final provider = Provider.of<CounterProvider>(context, listen: false);
+    print("Building MainAppBar");
 
     return Center(
       child: Container(
@@ -174,7 +171,7 @@ class _MainAppBarState extends State<MainAppBar> {
         if (AuthServices.firebase().currentUser != null &&
             !AuthServices.firebase().currentUser!.isEmailVerified)
           InkWell(
-            onTap: () => handleVerificationIconClick(provider),
+            onTap: () => handleVerificationIconClick(),
             child: Container(
               padding: const EdgeInsets.all(8),
               child: Icon(Icons.verified_user, color: Primarycolors.textDark),
@@ -182,7 +179,7 @@ class _MainAppBarState extends State<MainAppBar> {
           ),
         if (AuthServices.firebase().currentUser == null)
           InkWell(
-            onTap: () => handleLoginIconClick(provider),
+            onTap: () => handleLoginIconClick(),
             child: Container(
               padding: const EdgeInsets.all(8),
               child: Icon(Icons.login, color: Primarycolors.textDark),
@@ -190,7 +187,7 @@ class _MainAppBarState extends State<MainAppBar> {
           ),
         if (AuthServices.firebase().currentUser != null)
           InkWell(
-            onTap: () => handleLogoutIconClick(provider),
+            onTap: () => handleLogoutIconClick(),
             child: Container(
               padding: const EdgeInsets.all(8),
               child: Icon(Icons.logout, color: Primarycolors.textDark),

@@ -1,6 +1,7 @@
 import 'package:app_1/app.dart';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
+import 'package:app_1/database_provider.dart';
 import 'package:app_1/firebase_options.dart';
 import 'package:app_1/provider.dart';
 import 'package:app_1/screens/email_verification_screen.dart';
@@ -16,8 +17,15 @@ import 'package:firebase_core/firebase_core.dart' show Firebase;
 
 void main() {
   // Set status bar color and text color
-  runApp(ChangeNotifierProvider(
-    create: (context) => CounterProvider(),
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider<CounterProvider>(
+        create: (context) => CounterProvider(),
+      ),
+      ChangeNotifierProvider<DatabaseProvider>(
+        create: (context) => DatabaseProvider(),
+      ),
+    ],
     child: Main(),
   ));
 }
@@ -87,37 +95,12 @@ class Main extends StatelessWidget {
               vertical: 8,
             ), // Inner padding for text
           )),
-// FutureBuilder(
-//         future: AuthServices.firebase().initialize(),
-//         builder: (context, snapshot) {
-//           switch (snapshot.connectionState) {
-//             case ConnectionState.done:
-//               final AuthUser? user = AuthServices.firebase().currentUser;
-//               if (user != null) {
-//                 if (user.isEmailVerified) {
-//                   return LoginScreen();
-//                 } else {
-//                   return HomeScreen();
-//                 }
-//               }
-//               else{
-//               return LoginScreen();
-//               }
-//
-//             case ConnectionState.none:
-//             case ConnectionState.waiting:
-//             case ConnectionState.active:
-//               throw UnimplementedError();
-//           }
-
       home: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
         },
         child: FutureBuilder(
-            future: Firebase.initializeApp(
-              options: DefaultFirebaseOptions.currentPlatform,
-            ),
+            future: AuthServices.firebase().initialize(),
             builder: (context, snapshot) {
               switch (snapshot.connectionState) {
                 case ConnectionState.done:
@@ -130,8 +113,6 @@ class Main extends StatelessWidget {
                     }
                   } else {
                     return CenterApp();
-                    // return LoginScreen();
-                    // return CenterApp();
                   }
 
                 case ConnectionState.none:

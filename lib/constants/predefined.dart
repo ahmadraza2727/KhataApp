@@ -29,7 +29,7 @@ const String email_verification_route = "/email-verification/";
 //INFO: database constants
 const String khata_database = "KHATA.db";
 const String user_table_khata_database = "user";
-const String transaction_table_khata_database = "transaction";
+const String transaction_table_khata_database = "transactions";
 const String person_table_khata_database = "person";
 //INFO: user table columns
 const String id_column_user_table = "user_id";
