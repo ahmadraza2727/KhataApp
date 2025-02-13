@@ -2,7 +2,7 @@ import 'package:app_1/components/main_appbar.dart';
 import 'package:app_1/components/menu_options.dart';
 import 'package:app_1/components/search_feild.dart';
 import 'package:app_1/constants/primary_colors.dart';
-import 'package:app_1/provider.dart';
+import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/screens/calender_screen.dart';
 import 'package:app_1/screens/home_screen.dart';
 import 'package:app_1/screens/inform_screen.dart';
@@ -43,7 +43,7 @@ class CenterApp extends StatelessWidget {
                 MenuOptions(),
                 Expanded(
                   // INFO : indexed stack
-                  child: Consumer<CounterProvider>(
+                  child: Consumer<NavigationProvider>(
                     builder: (context, counterProvider, child) => IndexedStack(
                       index: counterProvider.getCurrentPage() as int,
                       children: screens,

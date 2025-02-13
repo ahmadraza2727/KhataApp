@@ -1,8 +1,7 @@
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
-import 'package:app_1/provider.dart';
+import 'package:app_1/providers/navigation_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:iconic/iconic.dart';
 import 'package:provider/provider.dart';
 
 class MenuOptions extends StatefulWidget {
@@ -18,7 +17,7 @@ class _MenuOptionsState extends State<MenuOptions> {
   @override
   Widget build(BuildContext context) {
     print('building menu options screen');
-    final provider = Provider.of<CounterProvider>(context);
+    final provider = Provider.of<NavigationProvider>(context);
 
     return Stack(
       // mainAxisAlignment: MainAxisAlignment.center,

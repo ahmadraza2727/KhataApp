@@ -1,5 +1,5 @@
 import 'package:app_1/constants/primary_colors.dart';
-import 'package:app_1/provider.dart';
+import 'package:app_1/providers/navigation_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,7 +15,7 @@ class _SearchFeildState extends State<SearchFeild> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<CounterProvider>(context);
+    final provider = Provider.of<NavigationProvider>(context);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

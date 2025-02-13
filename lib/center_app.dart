@@ -2,7 +2,7 @@ import 'package:app_1/components/main_appbar.dart';
 import 'package:app_1/components/menu_options.dart';
 import 'package:app_1/components/search_feild.dart';
 import 'package:app_1/constants/primary_colors.dart';
-import 'package:app_1/provider.dart';
+import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/screens/calender_screen.dart';
 import 'package:app_1/screens/home_screen.dart';
 import 'package:app_1/screens/inform_screen.dart';
@@ -15,7 +15,7 @@ class CenterApp extends StatelessWidget {
   const CenterApp({super.key});
   @override
   Widget build(BuildContext context) {
-    CounterProvider provider = Provider.of(context);
+    NavigationProvider provider = Provider.of(context);
 
     List<Widget> screens = [
       HomeScreen(),

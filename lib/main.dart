@@ -1,9 +1,8 @@
 import 'package:app_1/app.dart';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
-import 'package:app_1/database_provider.dart';
-import 'package:app_1/firebase_options.dart';
-import 'package:app_1/provider.dart';
+import 'package:app_1/providers/database_provider.dart';
+import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/screens/email_verification_screen.dart';
 import 'package:app_1/screens/login_screen.dart';
 import 'package:app_1/screens/register_screen.dart';
@@ -13,14 +12,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import 'package:firebase_core/firebase_core.dart' show Firebase;
-
 void main() {
   // Set status bar color and text color
   runApp(MultiProvider(
     providers: [
-      ChangeNotifierProvider<CounterProvider>(
-        create: (context) => CounterProvider(),
+      ChangeNotifierProvider<NavigationProvider>(
+        create: (context) => NavigationProvider(),
       ),
       ChangeNotifierProvider<DatabaseProvider>(
         create: (context) => DatabaseProvider(),

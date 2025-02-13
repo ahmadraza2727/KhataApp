@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
-import 'package:app_1/provider.dart';
+import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/services/auth/auth_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -47,19 +47,19 @@ class _MainAppBarState extends State<MainAppBar> {
     }
   }
 
-  void handleSearchIconClick(CounterProvider provider) {
+  void handleSearchIconClick(NavigationProvider provider) {
     provider.toggle_searchTextFeildOpenStatus();
     provider.set_menuOptionsOpenStatus();
   }
 
-  void handleMenuIconClick(CounterProvider provider) {
+  void handleMenuIconClick(NavigationProvider provider) {
     provider.toggle_menuOptionsOpenStatus();
     provider.set_searchTextFeildOpenStatus();
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<CounterProvider>(context, listen: false);
+    final provider = Provider.of<NavigationProvider>(context, listen: false);
     print("Building MainAppBar");
 
     return Center(
@@ -164,7 +164,7 @@ class _MainAppBarState extends State<MainAppBar> {
     );
   }
 
-  Row iconRow(CounterProvider provider, BuildContext context) {
+  Row iconRow(NavigationProvider provider, BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [

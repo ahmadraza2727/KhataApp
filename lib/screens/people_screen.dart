@@ -1,8 +1,7 @@
 import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/constants/primary_colors.dart';
-import 'package:app_1/database_provider.dart';
 import 'package:app_1/modals/modals.dart';
-import 'package:app_1/screens/contact_picker.dart';
+import 'package:app_1/providers/database_provider.dart';
 import 'package:app_1/services/auth/auth_services.dart';
 import 'package:app_1/services/database/database_exceptions.dart';
 import 'package:app_1/services/database/database_services.dart';
