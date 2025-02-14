@@ -40,7 +40,7 @@ class PeopleScreen extends StatefulWidget {
 
 class _PeopleScreenState extends State<PeopleScreen> {
   final userEmail = AuthServices.firebase().currentUser!.email;
-  final _khataService = KhataDatabaseServices();
+  // final _khataService = KhataDatabaseServices();
   // bool _isInitializing = true;
 
   @override
@@ -51,58 +51,52 @@ class _PeopleScreenState extends State<PeopleScreen> {
   @override
   dispose() {
     super.dispose();
-    _khataService.close();
+    // _khataService.close();
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<DatabaseProvider>(context, listen: false);
+    // final provider = Provider.of<DatabaseProvider>(context, listen: false);
     final email = AuthServices.firebase().currentUser!.email;
 
-    return FutureBuilder(
-      future: provider.getUser(email: email),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: Text("waitin foe user"));
-        }
-
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-
-        return Consumer<DatabaseProvider>(
-          builder: (context, provider, child) {
-            final persons = provider.personsCache;
-            return Scaffold(
-              backgroundColor: Primarycolors.backgroundColor,
-              body: ListView.builder(
-                itemCount: persons.length,
-                itemBuilder: (context, index) {
-                  final person = persons[index];
-                  return ListTile(
-                    title: Text(person.name),
-                    subtitle: Text(person.phoneNumber),
-                  );
-                },
-              ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () => showContactsModal(context, _onContactSelected),
-                child: Icon(Icons.add),
-              ),
-            );
-          },
+    return Consumer<DatabaseProvider>(
+      builder: (context, provider, child) {
+        final persons = provider.personsCache;
+        return Scaffold(
+          backgroundColor: Primarycolors.backgroundColor,
+          body: ListView.builder(
+            itemCount: persons.length,
+            itemBuilder: (context, index) {
+              final person = persons[index];
+              return ListTile(
+                title: Text(person.name),
+                subtitle: Text(person.phoneNumber),
+              );
+            },
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => showContactsModal(context, _onContactSelected),
+            child: Icon(Icons.add),
+          ),
         );
       },
     );
   }
 
   void _onContactSelected(Contact contact) async {
-    // final provider = Provider.of<DatabaseProvider>(context, listen: false);
-    final provider = context.read<DatabaseProvider>();
+    final provider = Provider.of<DatabaseProvider>(
+      context,
+      listen: false,
+    );
+    // final user = await provider.getUser(
+    // email: AuthServices.firebase().currentUser!.email);
+    // final provider = context.read<DatabaseProvider>();
     // print("on selected contact");
+    final email = AuthServices.firebase().currentUser!.email;
     try {
       await provider.createPerson(
         contactId: contact.id,
+        email: email,
         name: contact.displayName,
         phoneNumber: contact.phones.first.number,
       );

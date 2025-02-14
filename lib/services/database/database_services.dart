@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/services/auth/auth_user.dart';
 import 'package:app_1/services/database/database_exceptions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -64,6 +65,7 @@ class PersonDatabase {
   final int id;
   final String name;
   final String contactId;
+  final String userId;
   final String phoneNumber;
   final int totalamount;
   final int receivedAmount;
@@ -73,6 +75,7 @@ class PersonDatabase {
     required this.id,
     required this.name,
     required this.contactId,
+    required this.userId,
     required this.phoneNumber,
     required this.dueDate,
     this.totalamount = 0,
@@ -87,7 +90,9 @@ class PersonDatabase {
         totalamount = map[totalamount_column_person_table] as int,
         receivedAmount = map[receivedamount_column_person_table] as int,
         remainingamount = map[remainingamount_column_person_table] as int,
-        contactId = map[contactId_column_person_table] as String;
+        contactId = map[contactId_column_person_table] as String,
+        userId = map[userId_column_person_table] as String;
+
   @override
   bool operator ==(covariant PersonDatabase other) {
     return (id == other.id);
@@ -173,13 +178,21 @@ class KhataDatabaseServices {
 
       _database = await openDatabase(
         dbPath,
-        version: 1,
+        version: 3,
         onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
           // Create tables if they don't exist
           await db.execute(createUserTableQuery);
           await db.execute(createPersonTableQuery);
           await db.execute(createTransactionTableQuery);
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          // print("deleted database");
+          // if (oldVersion < 3) {
+          // await db
+          // .execute("DROP TABLE IF EXISTS $person_table_khata_database");
+          // await db.execute(createPersonTableQuery);
+          // }
         },
       );
 
@@ -309,15 +322,18 @@ class KhataDatabaseServices {
 // INFO: create a person databas eobject
   Future<PersonDatabase> createPerson({
     required String contactId,
+    required String email,
     required String name,
     required String phoneNumber,
   }) async {
     final Database database = await getDatabase();
+    final UserDatabase user = await getUser(email: email);
     final List<Map<String, Object?>> result = await database.query(
       person_table_khata_database,
       limit: 1,
-      where: "$contactId_column_person_table = ?",
-      whereArgs: [contactId],
+      where:
+          "$contactId_column_person_table = ? AND $userId_column_person_table = ?",
+      whereArgs: [contactId, user.id], // Pass both arguments
     );
 
     if (result.isNotEmpty) {
@@ -329,6 +345,7 @@ class KhataDatabaseServices {
       {
         name_column_person_table: name,
         contactId_column_person_table: contactId,
+        userId_column_person_table: user.id,
         phoneNumber_column_person_table: phoneNumber,
         totalamount_column_person_table: 0,
         remainingamount_column_person_table: 0,
@@ -341,6 +358,7 @@ class KhataDatabaseServices {
       name: name,
       phoneNumber: phoneNumber,
       contactId: contactId,
+      userId: user.id.toString(),
       dueDate: DateTime.now(),
     );
 
@@ -349,27 +367,36 @@ class KhataDatabaseServices {
 
   Future<PersonDatabase> getPerson({
     required String contactId,
+    required String email,
   }) async {
     final Database database = await getDatabase();
+    final UserDatabase user = await getUser(email: email);
     final List<Map<String, Object?>> result = await database.query(
       person_table_khata_database,
       limit: 1,
-      where: "$contactId_column_person_table = ?",
-      whereArgs: [contactId],
+      where:
+          "$contactId_column_person_table = ? AND $userId_column_person_table = ?",
+      whereArgs: [contactId, user.id], // Pass both arguments
     );
+
     if (result.isEmpty) {
       throw DatabasePersonNotFoundException();
     }
-    final pd = PersonDatabase.fromRow(result.first);
 
-    return pd;
+    return PersonDatabase.fromRow(result.first);
   }
 
-  Future<Iterable<PersonDatabase>> getAllPerson() async {
+  Future<Iterable<PersonDatabase>> getAllPerson(String email) async {
     final Database database = await getDatabase();
     try {
-      final List<Map<String, Object?>> result =
-          await database.query(person_table_khata_database);
+      final user = await getUser(email: email);
+      final List<Map<String, Object?>> result = await database.query(
+        person_table_khata_database,
+        limit: 1,
+        where: " $userId_column_person_table = ?",
+        whereArgs: [user.id], // Pass both arguments
+      );
+
       print("[DEBUG] getAllPerson found ${result.length} entries");
       return result.map((person) => PersonDatabase.fromRow(person));
     } catch (e) {
@@ -402,11 +429,16 @@ class KhataDatabaseServices {
 
   Future<PersonDatabase> updatePerson(
       {required String contactId,
+      required String email,
       required bool received,
       required int amount,
       DateTime? date}) async {
     final Database database = await getDatabase();
-    final person = await getPerson(contactId: contactId);
+    final person = await getPerson(
+      contactId: contactId,
+      email: email,
+    );
+
     int remainingamount = person.remainingamount;
     int recievedamount = person.receivedAmount;
     int totalamount = person.totalamount;
@@ -453,7 +485,10 @@ class KhataDatabaseServices {
         throw DatabasePersonNotUpdatedException();
       }
     }
-    final pd = await getPerson(contactId: person.contactId);
+    final pd = await getPerson(
+      contactId: person.contactId,
+      email: email,
+    );
     return pd;
   }
 
@@ -471,7 +506,10 @@ class KhataDatabaseServices {
     if (ud != owner) {
       throw DatabaseUserNotFoundException();
     }
-    final pd = await getPerson(contactId: person.contactId);
+    final pd = await getPerson(
+      contactId: person.contactId,
+      email: owner.email,
+    );
 
     int transactionId = await database.insert(
       transaction_table_khata_database,
@@ -487,6 +525,7 @@ class KhataDatabaseServices {
     );
     await updatePerson(
       contactId: pd.contactId,
+      email: owner.email,
       received: received,
       amount: amount,
     );
@@ -519,9 +558,17 @@ class KhataDatabaseServices {
       where: "$id_column_person_table = ?",
       whereArgs: [transaction[personId_column_transaction_table] as int],
     );
+
+    final user = await database.query(
+      user_table_khata_database,
+      where: "$id_column_user_table= ?",
+      whereArgs: [transaction[userId_column_transaction_table] as int],
+    );
     final person = PersonDatabase.fromRow(per.first);
+    final us = UserDatabase.fromRow(user.first);
     await updatePerson(
       contactId: person.contactId,
+      email: us.email,
       received: !(transaction[received_column_transaction_table] as bool),
       amount: transaction[amount_column_transaction_table] as int,
     );

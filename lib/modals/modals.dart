@@ -15,8 +15,9 @@ void showContactsModal(
     isScrollControlled: true,
     builder: (context) => Builder(
       builder: (context) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.6,
-        child: ContactListScreen(
+        height: MediaQuery.of(context).size.height * 0.8,
+        
+        child: ContactModal(
           onContactSelected: _onContactSelected,
         ),
       ),

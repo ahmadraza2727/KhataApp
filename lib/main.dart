@@ -14,25 +14,23 @@ import 'package:provider/provider.dart';
 
 void main() {
   // Set status bar color and text color
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider<NavigationProvider>(
-        create: (context) => NavigationProvider(),
-      ),
-      ChangeNotifierProvider<DatabaseProvider>(
-        create: (context) => DatabaseProvider(),
-      ),
-    ],
-    child: Main(),
-  ));
+  runApp(
+    Main(),
+  );
 }
 
-class Main extends StatelessWidget {
+class Main extends StatefulWidget {
   // const MyClass({super.key});
   const Main({super.key});
 
   @override
+  State<Main> createState() => _MainState();
+}
+
+class _MainState extends State<Main> {
+  @override
   Widget build(BuildContext context) {
+  print("building main");
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent, // Transparent status bar background
       statusBarIconBrightness:
@@ -44,7 +42,26 @@ class Main extends StatelessWidget {
       // color: Color.fromARGB(255, 0, 255, 0),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-          fontFamily: "Sans",
+          textTheme: TextTheme(
+            // Override all text styles
+            displayLarge: TextStyle(fontFamily: "Sans"),
+            displayMedium: TextStyle(fontFamily: "Sans"),
+            displaySmall: TextStyle(fontFamily: "Sans"),
+            headlineMedium: TextStyle(fontFamily: "Sans"),
+            headlineSmall: TextStyle(fontFamily: "Sans"),
+            titleLarge: TextStyle(fontFamily: "Sans"),
+            titleMedium: TextStyle(fontFamily: "Sans"),
+            titleSmall: TextStyle(fontFamily: "Sans"),
+            bodyLarge: TextStyle(fontFamily: "Sans"),
+            bodyMedium: TextStyle(fontFamily: "Sans"),
+            bodySmall: TextStyle(
+                fontFamily: "Sans"), // Lowercase intentional for demonstration
+            labelLarge: TextStyle(fontFamily: "Sans"),
+            labelSmall: TextStyle(fontFamily: "Sans"),
+          ).apply(
+            displayColor: Colors.black, // Default text color
+            bodyColor: Colors.black,
+          ),
           colorScheme: ColorScheme.fromSeed(
             seedColor: Primarycolors.primaryColor,
           ),
@@ -102,14 +119,25 @@ class Main extends StatelessWidget {
               switch (snapshot.connectionState) {
                 case ConnectionState.done:
                   final AuthUser? user = AuthServices.firebase().currentUser;
+
                   if (user != null) {
                     if (user.isEmailVerified) {
-                      return CenterApp();
+                      return MultiProvider(
+                        providers: [
+                          ChangeNotifierProvider<NavigationProvider>(
+                            create: (context) => NavigationProvider(),
+                          ),
+                          ChangeNotifierProvider<DatabaseProvider>(
+                            create: (context) => DatabaseProvider(user.email),
+                          ),
+                        ],
+                        child: CenterApp(),
+                      );
                     } else {
                       return CenterApp();
                     }
                   } else {
-                    return CenterApp();
+                    return LoginScreen();
                   }
 
                 case ConnectionState.none:

@@ -9,32 +9,32 @@ class DatabaseProvider with ChangeNotifier {
   bool get isInitialized => _isInitialized;
   //INFO : list of caches
   List<PersonDatabase> personsCache = [];
-  final StreamController<List<PersonDatabase>> _personStreamController =
-      StreamController<List<PersonDatabase>>.broadcast();
-
-  Stream<List<PersonDatabase>> get personStream =>
-      _personStreamController.stream;
+  // final StreamController<List<PersonDatabase>> _personStreamController =
+  //     StreamController<List<PersonDatabase>>.broadcast();
+  //
+  // Stream<List<PersonDatabase>> get personStream =>
+  //     _personStreamController.stream;
 
   List<UserDatabase> userCache = [];
   List<TransactionDatabase> transactionCache = [];
 
   //INFO: global database service
-  final KhataDatabaseServices _khataServices = KhataDatabaseServices();
+  static final KhataDatabaseServices _khataServices = KhataDatabaseServices();
 
   //INFO: constructor
-  DatabaseProvider() {
-    initializeDatabase();
+  DatabaseProvider(String email) {
+    initializeDatabase(email);
   }
   //INFO: main initialize function
-  Future<void> initializeDatabase() async {
+  Future<void> initializeDatabase(String email) async {
     print("initialzing database");
     // INFO: initialize the database
     await _khataServices.getDatabase();
     //INFO: getting all the persons
-    final persons = await _khataServices.getAllPerson();
+    final persons = await _khataServices.getAllPerson(email);
     personsCache = persons.toList();
-    _personStreamController.add(personsCache);
-    print("added porsons to person cache");
+    // _personStreamController.add(personsCache);
+    print("added persons to persons cache");
     //TODO: getting all the users
 
     //INFO : get all transactions
@@ -44,18 +44,22 @@ class DatabaseProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getUser({required String email}) async {
-    await _khataServices.getUser(email: email);
+  Future<UserDatabase> getUser({required String email}) async {
+    return await _khataServices.getUser(email: email);
   }
 
   Future<void> createPerson({
     required String contactId,
+    required String email,
     required String name,
     required String phoneNumber,
   }) async {
     try {
       final person = await _khataServices.createPerson(
-          contactId: contactId, name: name, phoneNumber: phoneNumber);
+          contactId: contactId,
+          email: email,
+          name: name,
+          phoneNumber: phoneNumber);
       addPersonCache(person);
     } on DatabasePersonAlreadyExistsException catch (_) {
       rethrow;
@@ -64,18 +68,23 @@ class DatabaseProvider with ChangeNotifier {
 
   Future<void> updatePerson(
       {required String contactId,
+      required String email,
       required bool received,
       required int amount,
       DateTime? date}) async {
     final person = await _khataServices.updatePerson(
-        contactId: contactId, received: received, amount: amount);
+        contactId: contactId, email: email, received: received, amount: amount);
     updatePersonCache(person);
   }
 
   Future<void> getPerson({
     required String contactId,
+    required String email,
   }) async {
-    final person = await _khataServices.getPerson(contactId: contactId);
+    final person = await _khataServices.getPerson(
+      contactId: contactId,
+      email: email,
+    );
     updatePersonCache(person);
   }
 
@@ -83,7 +92,6 @@ class DatabaseProvider with ChangeNotifier {
   void addPersonCache(PersonDatabase person) {
     print("adding to person cache");
     personsCache.add(person);
-    _personStreamController.add(personsCache);
     notifyListeners();
   }
 
@@ -92,7 +100,6 @@ class DatabaseProvider with ChangeNotifier {
     print("updating the person cache");
     personsCache.removeWhere((person_) => person_.id == person.id);
     personsCache.add(person);
-    _personStreamController.add(personsCache);
     notifyListeners();
   }
 }

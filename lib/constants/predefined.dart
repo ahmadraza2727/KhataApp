@@ -39,6 +39,7 @@ const String isEmailVerified_column_user_table = "user_is_email_verified";
 const String id_column_person_table = "person_id";
 const String name_column_person_table = "person_name";
 const String contactId_column_person_table = "person_contact_id";
+const String userId_column_person_table = "person_user_id";
 const String phoneNumber_column_person_table = "person_phoner_number";
 const String totalamount_column_person_table = "person_total_amount";
 const String receivedamount_column_person_table = "person_received_amount";
@@ -69,6 +70,7 @@ const String createPersonTableQuery = '''
     $id_column_person_table INTEGER PRIMARY KEY,
     $name_column_person_table TEXT,
     $contactId_column_person_table TEXT UNIQUE,
+    $userId_column_person_table TEXT ,
     $phoneNumber_column_person_table TEXT UNIQUE,
     $totalamount_column_person_table INTEGER DEFAULT 0,
     $receivedamount_column_person_table INTEGER DEFAULT 0,

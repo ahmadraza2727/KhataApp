@@ -59,7 +59,10 @@ class _MainAppBarState extends State<MainAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<NavigationProvider>(context, listen: false);
+    final provider = Provider.of<NavigationProvider>(
+      context,
+      listen: false,
+    );
     print("Building MainAppBar");
 
     return Center(
