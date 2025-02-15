@@ -1,12 +1,19 @@
 import 'package:app_1/components/dialogs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class ContactTypeAhead extends StatefulWidget {
   final void Function(Contact) onContactSelected;
-  const ContactTypeAhead({super.key, required this.onContactSelected});
+  // Contact? selectedContact;
+  const ContactTypeAhead(
+      // Contact selectedContact, {
+      {
+    super.key,
+    required this.onContactSelected,
+  });
 
   @override
   State<ContactTypeAhead> createState() => _ContactTypeAheadState();
@@ -14,6 +21,7 @@ class ContactTypeAhead extends StatefulWidget {
 
 class _ContactTypeAheadState extends State<ContactTypeAhead> {
   late Future<List<Contact>> _fetchedContacts;
+  Contact? selectedContact;
   @override
   void initState() {
     _fetchedContacts = _fetchContacts(context);
@@ -33,8 +41,6 @@ class _ContactTypeAheadState extends State<ContactTypeAhead> {
       return [];
     }
   }
-
-  Contact? selectedContact;
 
   @override
   Widget build(BuildContext context) {
@@ -57,13 +63,13 @@ class _ContactTypeAheadState extends State<ContactTypeAhead> {
               hideOnUnfocus: false,
               suggestionsCallback: (search) {
                 if (search.isEmpty) return contacts;
-        
+
                 final filteredContacts = contacts.where((contact) {
                   final name = contact.name.toString().toLowerCase();
                   final query = search.toLowerCase();
                   return name.contains(query);
                 }).toList();
-        
+
                 return filteredContacts;
               },
               builder: (context, controller, focusNode) {
@@ -83,7 +89,9 @@ class _ContactTypeAheadState extends State<ContactTypeAhead> {
               },
               onSelected: (contact) {
                 selectedContact = contact;
+                print(selectedContact);
                 widget.onContactSelected(contact);
+                setState(() {});
               },
             ),
             if (selectedContact != null) ...[

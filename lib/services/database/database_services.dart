@@ -18,9 +18,11 @@ class TransactionDatabase {
   final bool isSyncedWithCloud;
   final bool received;
   final String reason;
+  final String recording; // <-- New field
 
-  // PersonDatabase? person;
-  // UserDatabase? user;
+  PersonDatabase? person;
+  UserDatabase? user;
+
   TransactionDatabase({
     required this.id,
     required this.personId,
@@ -30,16 +32,17 @@ class TransactionDatabase {
     required this.isSyncedWithCloud,
     required this.received,
     required this.reason,
-    // this.person,
-    // this.user,
+    required this.recording, // <-- New field
+    this.person,
+    this.user,
   });
+
   TransactionDatabase.fromRow(
-    Map<String, Object?> map,
-    // {
-    // this.person,
-    // this.user,
-    // }
-  )   : id = map[id_column_transaction_table] as int,
+    Map<String, Object?> map, {
+    Database? db,
+    this.person,
+    this.user,
+  })  : id = map[id_column_transaction_table] as int,
         personId = map[personId_column_transaction_table] as int,
         userId = map[userId_column_transaction_table] as int,
         amount = map[amount_column_transaction_table] as int,
@@ -47,7 +50,22 @@ class TransactionDatabase {
         reason = map[reason_column_transaction_table] as String,
         received = (map[received_column_transaction_table] == 1),
         isSyncedWithCloud =
-            (map[isSyncedWithCloud_column_transaction_table] == 1);
+            (map[isSyncedWithCloud_column_transaction_table] == 1),
+        recording =
+            map[recording_column_transaction_table] as String; // <-- New field
+  void setPerson(PersonDatabase person) {
+    this.person = person;
+  }
+  // Future<Map<String, Object?>> personGetter(Database database, int id) async {
+  //   final List<Map<String, Object?>> result = await database.query(
+  //     person_table_khata_database,
+  //     limit: 1,
+  //     where: "$id_column_person_table = ? ",
+  //     whereArgs: [id], // Pass both arguments
+  //   );
+  //   return result.first;
+  // }
+
   @override
   bool operator ==(covariant TransactionDatabase other) {
     return (id == other.id);
@@ -71,6 +89,7 @@ class PersonDatabase {
   final int receivedAmount;
   final int remainingamount;
   final DateTime dueDate;
+  // int numberOfTransactions;
   PersonDatabase({
     required this.id,
     required this.name,
@@ -168,6 +187,7 @@ class KhataDatabaseServices {
 
 //INFO : this is the global database instance
   static Database? _database;
+// {amount: 65, transactionType: false, reason: , recording: /data/user/0/com.example.app_1/app_flutter/audio_1739636495322.aac}
 //INFO: open the database
   Future<void> open() async {
     if (_database != null) return;
@@ -178,7 +198,7 @@ class KhataDatabaseServices {
 
       _database = await openDatabase(
         dbPath,
-        version: 3,
+        version: 7,
         onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
           // Create tables if they don't exist
@@ -188,14 +208,15 @@ class KhataDatabaseServices {
         },
         onUpgrade: (db, oldVersion, newVersion) async {
           // print("deleted database");
-          // if (oldVersion < 3) {
-          // await db
-          // .execute("DROP TABLE IF EXISTS $person_table_khata_database");
-          // await db.execute(createPersonTableQuery);
+          // if (oldVersion < 7) {
+          // await db.execute(
+          // "DROP TABLE IF EXISTS $transaction_table_khata_database");
+          // await db.execute(createTransactionTableQuery);
           // }
         },
       );
 
+      // await _database.delete(person_table_khata_database);
       // Load initial data after opening
       // await cacheAllPerson();
     } catch (e) {
@@ -327,6 +348,7 @@ class KhataDatabaseServices {
     required String phoneNumber,
   }) async {
     final Database database = await getDatabase();
+    // await database.delete(person_table_khata_database);
     final UserDatabase user = await getUser(email: email);
     final List<Map<String, Object?>> result = await database.query(
       person_table_khata_database,
@@ -392,7 +414,6 @@ class KhataDatabaseServices {
       final user = await getUser(email: email);
       final List<Map<String, Object?>> result = await database.query(
         person_table_khata_database,
-        limit: 1,
         where: " $userId_column_person_table = ?",
         whereArgs: [user.id], // Pass both arguments
       );
@@ -498,6 +519,7 @@ class KhataDatabaseServices {
     required int amount,
     required DateTime date,
     required String reason,
+    required String recording,
     required bool received,
     bool isSyncedWithCloud = false,
   }) async {
@@ -510,37 +532,45 @@ class KhataDatabaseServices {
       contactId: person.contactId,
       email: owner.email,
     );
+    try {
+      int transactionId = await database.insert(
+        transaction_table_khata_database,
+        {
+          personId_column_transaction_table: person.id,
+          userId_column_transaction_table: owner.id,
+          amount_column_transaction_table: amount,
+          date_column_transaction_table: date.toIso8601String(),
+          reason_column_transaction_table: reason,
+          recording_column_transaction_table: recording,
+          received_column_transaction_table: received ? 1 : 0,
+          isSyncedWithCloud_column_transaction_table: isSyncedWithCloud ? 1 : 0,
+        },
+      );
+      final person1 = await updatePerson(
+        contactId: pd.contactId,
+        email: owner.email,
+        received: received,
+        amount: amount,
+      );
 
-    int transactionId = await database.insert(
-      transaction_table_khata_database,
-      {
-        personId_column_transaction_table: person.id,
-        userId_column_transaction_table: owner.id,
-        amount_column_transaction_table: amount,
-        date_column_transaction_table: date.toIso8601String(),
-        reason_column_transaction_table: reason,
-        received_column_transaction_table: received,
-        isSyncedWithCloud_column_transaction_table: isSyncedWithCloud ? 1 : 0,
-      },
-    );
-    await updatePerson(
-      contactId: pd.contactId,
-      email: owner.email,
-      received: received,
-      amount: amount,
-    );
-
-    final td = TransactionDatabase(
-      id: transactionId,
-      personId: person.id,
-      userId: owner.id,
-      date: date,
-      amount: amount,
-      isSyncedWithCloud: isSyncedWithCloud,
-      reason: reason,
-      received: received,
-    );
-    return td;
+      final td = TransactionDatabase(
+        id: transactionId,
+        personId: person.id,
+        userId: owner.id,
+        date: date,
+        amount: amount,
+        isSyncedWithCloud: isSyncedWithCloud,
+        reason: reason,
+        recording: recording,
+        received: received,
+        person: person1,
+        user: ud,
+      );
+      return td;
+    } catch (_) {
+      print("this is in db services");
+      rethrow;
+    }
   }
 
   Future<void> deleteTransaction({required int id}) async {
@@ -569,7 +599,8 @@ class KhataDatabaseServices {
     await updatePerson(
       contactId: person.contactId,
       email: us.email,
-      received: !(transaction[received_column_transaction_table] as bool),
+      received:
+          !(transaction[received_column_transaction_table] == 1 ? true : false),
       amount: transaction[amount_column_transaction_table] as int,
     );
     final deleteCount = await database.delete(
@@ -598,15 +629,11 @@ class KhataDatabaseServices {
   }
 
   Future<Iterable<TransactionDatabase>> getTransactionsOfAPerson(
-      {required int contactId}) async {
+      {required int contactId, required String email}) async {
     final database = await getDatabase();
-    final p = await database.query(
-      transaction_table_khata_database,
-      limit: 1,
-      where: "$contactId_column_person_table = ?",
-      whereArgs: [contactId],
-    );
-    final person = PersonDatabase.fromRow(p.first);
+    final user = await getUser(email: email);
+    final person =
+        await getPerson(contactId: contactId.toString(), email: email);
     final List<Map<String, Object?>> result = await database.query(
       transaction_table_khata_database,
       limit: 1,
@@ -616,17 +643,24 @@ class KhataDatabaseServices {
     if (result.isEmpty) {
       throw DatabaseTransactionNotFoundException();
     }
-    final td =
-        result.map((transaction) => TransactionDatabase.fromRow(transaction));
+    final td = result.map((transaction) => TransactionDatabase.fromRow(
+          transaction,
+          user: user,
+          person: person,
+        ));
     return td;
   }
 
-  Future<Iterable<TransactionDatabase>> getAllTransactions() async {
+  Future<Iterable<TransactionDatabase>> getAllTransactions(String email) async {
     final database = await getDatabase();
+    final user = await getUser(email: email);
     final List<Map<String, Object?>> result = await database.query(
       transaction_table_khata_database,
+      where: " $userId_column_transaction_table = ?",
+      whereArgs: [user.id], // Pass both arguments
     );
-    final td = result.map((noteRow) => TransactionDatabase.fromRow(noteRow));
+    final td = result
+        .map((noteRow) => TransactionDatabase.fromRow(noteRow, user: user));
     return td;
   }
 }

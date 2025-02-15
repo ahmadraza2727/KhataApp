@@ -22,6 +22,7 @@ List<String> icons_Names = [
 ];
 
 const String home_route = "/home/";
+// const String transaction_detail = "/home/";
 const String login_route = "/login/";
 const String register_route = "/register/";
 const String email_verification_route = "/email-verification/";
@@ -51,10 +52,11 @@ const String personId_column_transaction_table = "transaction_people_id";
 const String userId_column_transaction_table = "transaction_user_id";
 const String date_column_transaction_table = "transaction_date";
 const String amount_column_transaction_table = "transaction_amount";
+const String reason_column_transaction_table = "transaction_reason";
+const String recording_column_transaction_table = "transaction_recording";
 const String received_column_transaction_table = "transaction_reeieved";
 const String isSyncedWithCloud_column_transaction_table =
     "transaction_is_synced_with_cloud";
-const String reason_column_transaction_table = "transaction_reason";
 
 // $isEmailVerified_column_user_table INTEGER
 //INFO: database queries
@@ -65,6 +67,7 @@ const String createUserTableQuery = '''
   )
 ''';
 
+//TODO: make contactid column not unique
 const String createPersonTableQuery = '''
   CREATE TABLE IF NOT EXISTS person (
     $id_column_person_table INTEGER PRIMARY KEY,
@@ -85,6 +88,8 @@ const String createTransactionTableQuery = '''
     $personId_column_transaction_table INTEGER,
     $userId_column_transaction_table INTEGER,
     $date_column_transaction_table TEXT,
+    $reason_column_transaction_table TEXT,
+    $recording_column_transaction_table TEXT,
     $amount_column_transaction_table INTEGER,
     $isSyncedWithCloud_column_transaction_table INTEGER,
     $received_column_transaction_table INTEGER,

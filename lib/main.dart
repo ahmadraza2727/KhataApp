@@ -13,9 +13,18 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  // Set status bar color and text color
   runApp(
-    Main(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => NavigationProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => DatabaseProvider(),
+        ),
+      ],
+      child: Main(),
+    ),
   );
 }
 
@@ -30,16 +39,12 @@ class Main extends StatefulWidget {
 class _MainState extends State<Main> {
   @override
   Widget build(BuildContext context) {
-  print("building main");
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent, // Transparent status bar background
-      statusBarIconBrightness:
-          Brightness.dark, // Dark icons/text for white background
-      statusBarBrightness:
-          Brightness.light, // For iOS: light background for dark text
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
     ));
+
     return MaterialApp(
-      // color: Color.fromARGB(255, 0, 255, 0),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
           textTheme: TextTheme(
@@ -109,59 +114,54 @@ class _MainState extends State<Main> {
               vertical: 8,
             ), // Inner padding for text
           )),
-      home: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
-        child: FutureBuilder(
-            future: AuthServices.firebase().initialize(),
-            builder: (context, snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.done:
-                  final AuthUser? user = AuthServices.firebase().currentUser;
-
-                  if (user != null) {
-                    if (user.isEmailVerified) {
-                      return MultiProvider(
-                        providers: [
-                          ChangeNotifierProvider<NavigationProvider>(
-                            create: (context) => NavigationProvider(),
-                          ),
-                          ChangeNotifierProvider<DatabaseProvider>(
-                            create: (context) => DatabaseProvider(user.email),
-                          ),
-                        ],
-                        child: CenterApp(),
-                      );
-                    } else {
-                      return CenterApp();
-                    }
-                  } else {
-                    return LoginScreen();
-                  }
-
-                case ConnectionState.none:
-                case ConnectionState.waiting:
-                case ConnectionState.active:
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                    ),
-                    child: CircularProgressIndicator(),
-                  );
-              }
-            }),
-      ),
+      home: AuthWrapper(),
       routes: {
-        home_route: (context) => const Main(),
-        // "/transactions/": (context) => const TransactionScreen(),
-        // "/calender/": (context) => const CalenderScreen(),
-        // "/poeple/": (context) => const PeopleScreen(),
-        // "/inform/": (context) => const InformScreen(),
+        home_route: (context) => AuthWrapper(),
         login_route: (context) => LoginScreen(),
-        register_route: (context) => RegisterScreen(),
-        email_verification_route: (context) => EmailVerificationScreen(),
+        register_route: (context) => const RegisterScreen(),
+        email_verification_route: (context) => const EmailVerificationScreen(),
       },
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: AuthServices.firebase().initialize(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const LoadingScreen();
+        }
+
+        final user = AuthServices.firebase().currentUser;
+        if (user == null) return LoginScreen();
+        if (!user.isEmailVerified) {
+          return const EmailVerificationScreen();
+        }
+
+        // DatabaseProvider will auto-update through ProxyProvider
+        context.read<DatabaseProvider>().initializeDatabase(user.email!);
+        return const CenterApp();
+      },
+    );
+  }
+}
+
+class LoadingScreen extends StatelessWidget {
+  const LoadingScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(
+          color: Primarycolors.primaryColor,
+        ),
+      ),
     );
   }
 }

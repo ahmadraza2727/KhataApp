@@ -5,8 +5,7 @@ import 'package:app_1/services/database/database_services.dart';
 import 'package:flutter/material.dart';
 
 class DatabaseProvider with ChangeNotifier {
-  bool _isInitialized = false;
-  bool get isInitialized => _isInitialized;
+  String? _currrentEmail;
   //INFO : list of caches
   List<PersonDatabase> personsCache = [];
   // final StreamController<List<PersonDatabase>> _personStreamController =
@@ -22,12 +21,15 @@ class DatabaseProvider with ChangeNotifier {
   static final KhataDatabaseServices _khataServices = KhataDatabaseServices();
 
   //INFO: constructor
-  DatabaseProvider(String email) {
-    initializeDatabase(email);
-  }
+  // DatabaseProvider(String email) {
+  //   initializeDatabase(email);
+  // }
   //INFO: main initialize function
   Future<void> initializeDatabase(String email) async {
+    if (_currrentEmail != null && email == _currrentEmail) return;
+    _currrentEmail = email;
     print("initialzing database");
+    print("and email is $_currrentEmail");
     // INFO: initialize the database
     await _khataServices.getDatabase();
     //INFO: getting all the persons
@@ -38,9 +40,16 @@ class DatabaseProvider with ChangeNotifier {
     //TODO: getting all the users
 
     //INFO : get all transactions
-    final transactions = await _khataServices.getAllTransactions();
-    transactionCache = transactions.toList();
-    _isInitialized = true;
+    final t = await _khataServices.getAllTransactions(email);
+    final transactions = t.map((transaction) {
+      final matchedPerson = personsCache.firstWhere(
+        (person) => person.id == transaction.personId,
+      );
+
+      transaction.setPerson(matchedPerson);
+      return transaction; // ✅ Return transaction
+    }).toList();
+    transactionCache = transactions;
     notifyListeners();
   }
 
@@ -48,19 +57,23 @@ class DatabaseProvider with ChangeNotifier {
     return await _khataServices.getUser(email: email);
   }
 
-  Future<void> createPerson({
+  Future<UserDatabase> getCurrentUser() async {
+    return await _khataServices.getUser(email: _currrentEmail!);
+  }
+
+  Future<PersonDatabase> createPerson({
     required String contactId,
-    required String email,
     required String name,
     required String phoneNumber,
   }) async {
     try {
       final person = await _khataServices.createPerson(
           contactId: contactId,
-          email: email,
+          email: _currrentEmail!,
           name: name,
           phoneNumber: phoneNumber);
       addPersonCache(person);
+      return person;
     } on DatabasePersonAlreadyExistsException catch (_) {
       rethrow;
     }
@@ -68,24 +81,26 @@ class DatabaseProvider with ChangeNotifier {
 
   Future<void> updatePerson(
       {required String contactId,
-      required String email,
       required bool received,
       required int amount,
       DateTime? date}) async {
     final person = await _khataServices.updatePerson(
-        contactId: contactId, email: email, received: received, amount: amount);
+        contactId: contactId,
+        email: _currrentEmail!,
+        received: received,
+        amount: amount);
     updatePersonCache(person);
   }
 
-  Future<void> getPerson({
+  Future<PersonDatabase> getPerson({
     required String contactId,
-    required String email,
   }) async {
     final person = await _khataServices.getPerson(
       contactId: contactId,
-      email: email,
+      email: _currrentEmail!,
     );
     updatePersonCache(person);
+    return person;
   }
 
   // INFO : add a person to the global person cache
@@ -97,9 +112,61 @@ class DatabaseProvider with ChangeNotifier {
 
 //INFO: update a person in the person cache
   void updatePersonCache(PersonDatabase person) {
-    print("updating the person cache");
     personsCache.removeWhere((person_) => person_.id == person.id);
     personsCache.add(person);
+    notifyListeners();
+    print("updating the person cache");
+  }
+
+  Future<TransactionDatabase> createTransaction({
+    required UserDatabase owner,
+    required PersonDatabase person,
+    required int amount,
+    required DateTime date,
+    required String reason,
+    required String recording,
+    required bool received,
+    bool isSyncedWithCloud = false,
+  }) async {
+    final TransactionDatabase td = await _khataServices.createTransaction(
+        owner: owner,
+        person: person,
+        amount: amount,
+        date: date,
+        reason: reason,
+        recording: recording,
+        received: received);
+    addTransactionCache(td);
+    return td;
+  }
+
+  Future<void> deleteTransaction({required int id}) async {
+    await _khataServices.deleteTransaction(id: id);
+    deleteTransactionCache(id);
+  }
+
+  List<TransactionDatabase> getTransactionsOfAPerson({required int contactId}) {
+    final trs = transactionCache
+        .where((transaction) =>
+            int.tryParse(transaction.person!.contactId) == contactId)
+        .toList();
+    return trs;
+  }
+
+  Future<TransactionDatabase> getTransaction({required int id}) =>
+      _khataServices.getTransaction(id: id);
+
+  // INFO : add a person to the global person cache
+  void addTransactionCache(TransactionDatabase transaction) {
+    print("adding transaction to transaction cache");
+    transactionCache.add(transaction);
+    notifyListeners();
+  }
+
+//INFO: update a person in the person cache
+  void deleteTransactionCache(int id) {
+    print("updating transaction cache");
+    transactionCache.removeWhere((transaction_) => transaction_.id == id);
     notifyListeners();
   }
 }
