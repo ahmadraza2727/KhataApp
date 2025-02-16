@@ -8,6 +8,7 @@ class DatabaseProvider with ChangeNotifier {
   String? _currrentEmail;
   //INFO : list of caches
   List<PersonDatabase> personsCache = [];
+  Set<PersonDatabase> personSet = {};
   // final StreamController<List<PersonDatabase>> _personStreamController =
   //     StreamController<List<PersonDatabase>>.broadcast();
   //
@@ -34,22 +35,26 @@ class DatabaseProvider with ChangeNotifier {
     await _khataServices.getDatabase();
     //INFO: getting all the persons
     final persons = await _khataServices.getAllPerson(email);
-    personsCache = persons.toList();
-    // _personStreamController.add(personsCache);
-    print("added persons to persons cache");
     //TODO: getting all the users
 
     //INFO : get all transactions
     final t = await _khataServices.getAllTransactions(email);
     final transactions = t.map((transaction) {
-      final matchedPerson = personsCache.firstWhere(
+      final matchedPerson = persons.firstWhere(
         (person) => person.id == transaction.personId,
       );
 
       transaction.setPerson(matchedPerson);
+      personSet.add(matchedPerson);
       return transaction; // ✅ Return transaction
     }).toList();
     transactionCache = transactions;
+
+    //INFO: get filtered persons
+
+    personsCache = personSet.toList();
+    // _personStreamController.add(personsCache);
+    print("added persons to persons cache");
     notifyListeners();
   }
 
@@ -145,12 +150,15 @@ class DatabaseProvider with ChangeNotifier {
     deleteTransactionCache(id);
   }
 
-  List<TransactionDatabase> getTransactionsOfAPerson({required int contactId}) {
-    final trs = transactionCache
-        .where((transaction) =>
-            int.tryParse(transaction.person!.contactId) == contactId)
-        .toList();
-    return trs;
+  Map<String,dynamic> getTransactionsOfAPerson(
+      {required int contactId}) {
+    int am = 0;
+    final trs = transactionCache.where((transaction) {
+      bool f = int.tryParse(transaction.person!.contactId) == contactId;
+      if (f) am = transaction.person!.receivedAmount;
+      return f;
+    }).toList();
+    return {"amount": am, "transactions": trs};
   }
 
   Future<TransactionDatabase> getTransaction({required int id}) =>

@@ -117,7 +117,7 @@ class _ContactModalState extends State<ContactModal> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Primarycolors.backgroundColor,
+            // color: Primarycolors.backgroundColor,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(

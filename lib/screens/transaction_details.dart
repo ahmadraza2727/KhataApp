@@ -154,7 +154,8 @@ class TransactionDetailsScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Primarycolors.textDark,
+                  // color: Primarycolors.textDark,
+                  color: received ? Colors.green.shade700 : Colors.red.shade700,
                 ),
               ),
               const SizedBox(height: 8),
@@ -192,7 +193,7 @@ class TransactionDetailsScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               /// **Recording Player**
-              if (recording != "No-Recording") ...[
+              if (recording != "") ...[
                 ChangeNotifierProvider(
                   create: (_) => AudioPlayerService(),
                   child: AudioPlayerWidget(recordingPath: recording),

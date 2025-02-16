@@ -448,69 +448,67 @@ class KhataDatabaseServices {
   //   return pd;
   // }
 
-  Future<PersonDatabase> updatePerson(
-      {required String contactId,
-      required String email,
-      required bool received,
-      required int amount,
-      DateTime? date}) async {
+  Future<PersonDatabase> updatePerson({
+    required String contactId,
+    required String email,
+    required bool received,
+    required int amount,
+    DateTime? date,
+  }) async {
     final Database database = await getDatabase();
     final person = await getPerson(
       contactId: contactId,
       email: email,
     );
 
-    int remainingamount = person.remainingamount;
-    int recievedamount = person.receivedAmount;
-    int totalamount = person.totalamount;
-    if (received) {
-      if (person.totalamount == 0 && amount > 0) {
-        throw DatabasePersonamountGreaterThatTotalamountException();
-      }
-      if (person.totalamount > 0 && amount > 0 && person.totalamount < amount) {
-        throw DatabasePersonamountGreaterThatTotalamountException();
-      }
-      if (person.totalamount > 0 && amount > 0 && person.totalamount > amount) {
-        remainingamount -= amount;
-        recievedamount += amount;
-      }
+    if (person == null) {
+      throw DatabasePersonNotFoundException();
     }
 
-    if (!received) {
-      if (amount > 0) {
-        remainingamount += amount;
-        totalamount += amount;
+    int remainingAmount = person.remainingamount;
+    int totalReceivedAmount = person.receivedAmount;
+    int totalAmount = person.totalamount;
+
+    print("Remaining amount: $remainingAmount");
+    print("Received amount: $totalReceivedAmount");
+    print("Total amount: $totalAmount");
+
+    if (received) {
+      if (amount > totalAmount) {
+        throw DatabasePersonamountGreaterThatTotalamountException();
       }
+      if (amount > remainingAmount) {
+        throw DatabasePersonamountGreaterThatTotalamountException();
+      }
+      remainingAmount -= amount;
+      totalReceivedAmount += amount;
+    } else {
+      remainingAmount += amount;
+      totalAmount += amount;
     }
+
+    final Map<String, dynamic> updateData = {
+      totalamount_column_person_table: totalAmount,
+      receivedamount_column_person_table: totalReceivedAmount,
+      remainingamount_column_person_table: remainingAmount,
+    };
+
+    if (date != null) {
+      updateData[dueDate_column_person_table] = date.toIso8601String();
+    }
+
     final int result = await database.update(
-        person_table_khata_database,
-        {
-          totalamount_column_person_table: totalamount,
-          receivedamount_column_person_table: recievedamount,
-          remainingamount_column_person_table: remainingamount,
-        },
-        where: "$id_column_person_table = ?",
-        whereArgs: [person.id]);
+      person_table_khata_database,
+      updateData,
+      where: "$id_column_person_table = ?",
+      whereArgs: [person.id],
+    );
+
     if (result == 0) {
       throw DatabasePersonNotUpdatedException();
     }
-    if (date != null) {
-      final int result = await database.update(
-          person_table_khata_database,
-          {
-            dueDate_column_person_table: date.toIso8601String(),
-          },
-          where: "$contactId_column_person_table = ?",
-          whereArgs: [person.contactId]);
-      if (result == 0) {
-        throw DatabasePersonNotUpdatedException();
-      }
-    }
-    final pd = await getPerson(
-      contactId: person.contactId,
-      email: email,
-    );
-    return pd;
+
+    return await getPerson(contactId: person.contactId, email: email);
   }
 
   Future<TransactionDatabase> createTransaction({

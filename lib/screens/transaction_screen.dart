@@ -68,7 +68,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                         final date = transaction.date;
 
                         return Container(
-                          padding: EdgeInsets.all(5),
+                          // padding: EdgeInsets.all(5),
                           child: Slidable(
                             key: ValueKey(transaction.id),
                             endActionPane: ActionPane(
@@ -103,7 +103,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               color: Colors.white,
                               elevation: 3,
                               child: ListTile(
-                                contentPadding: const EdgeInsets.all(15),
+                                contentPadding: const EdgeInsets.all(6),
                                 leading: CircleAvatar(
                                   backgroundColor: transaction.received
                                       ? Colors.green
@@ -118,17 +118,31 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                   ),
                                 ),
                                 title: Text(
-                                  personName,
+                                  personName, maxLines: 1, 
+                                  overflow:
+                                      TextOverflow.ellipsis, 
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 18),
+                                      fontSize: 14),
                                 ),
-                                subtitle: Text(
-                                  "Amount: Rs${amount.toString()}  |  ${date.toLocal().toString().split(' ')[0]}",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade600),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Amount: Rs${amount.toString()}  ",
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade600),
+                                    ),
+                                    Text(
+                                      date.toLocal().toString().split(' ')[0],
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade600),
+                                    ),
+                                  ],
                                 ),
+// |  ${date.toLocal().toString().split(' ')[0]}",
                                 trailing: IconButton(
                                   icon: const Icon(Icons.info_outline,
                                       color: Colors.grey),
@@ -200,6 +214,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
     final recording = map['recording'] as String;
     print(reason);
     print(recording);
+    print(map["transactionType"]);
     final person =
         await provider.getPerson(contactId: (selectedContact!.id).toString());
     try {
