@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:app_1/components/audio_player.dart';
 import 'package:app_1/screens/person_transactions_screen.dart';
 import 'package:app_1/services/audio/player.dart';
+import 'package:app_1/services/database/database_services.dart';
 import 'package:flutter/material.dart';
 import 'package:iconic/iconic.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:ui';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:app_1/constants/primary_colors.dart';
@@ -19,8 +21,9 @@ class TransactionDetailsScreen extends StatelessWidget {
   final String recording;
   final String phoneNumber;
   final bool received;
+  final PersonDatabase person;
 
-  TransactionDetailsScreen({
+  const TransactionDetailsScreen({
     super.key,
     required this.personName,
     required this.amount,
@@ -30,6 +33,7 @@ class TransactionDetailsScreen extends StatelessWidget {
     required this.phoneNumber,
     required this.contactId,
     required this.recording,
+    required this.person,
   });
 
   void _makeCall() async {
@@ -54,6 +58,23 @@ class TransactionDetailsScreen extends StatelessWidget {
       await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
     } else {
       print("WhatsApp is not installed");
+    }
+  }
+
+  void _shareAudioFile() async {
+    if (recording != "") {
+      final File audioFile = File(recording);
+
+      if (await audioFile.exists()) {
+        await Share.shareXFiles(
+          [XFile(audioFile.path)],
+          text: "Gave $amount to $personName ",
+          subject: "The Date Was ${date.toString()}",
+        );
+      } else {
+        print("not sharinf");
+        // TODO: handle exception
+      }
     }
   }
 
@@ -100,6 +121,7 @@ class TransactionDetailsScreen extends StatelessWidget {
                       builder: (context) => PersonTransactionsScreen(
                         contactId: int.tryParse(contactId) ?? 0,
                         personName: personName,
+                        selectedPerson: person,
                       ),
                     ),
                   );
@@ -205,22 +227,32 @@ class TransactionDetailsScreen extends StatelessWidget {
       ),
 
       /// **Floating Buttons for Call & WhatsApp**
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          FloatingActionButton(
-            onPressed: _makeCall,
-            heroTag: "callButton",
-            backgroundColor: Colors.green,
-            child: const Icon(Icons.call, color: Colors.white),
-          ),
-          FloatingActionButton(
-            onPressed: _openWhatsApp,
-            heroTag: "whatsappButton",
-            backgroundColor: Colors.teal,
-            child: const Icon(Icons.message, color: Colors.white),
-          ),
-        ],
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(left: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Evenly distribute
+          children: [
+            FloatingActionButton(
+              onPressed: _makeCall,
+              heroTag: "callButton",
+              backgroundColor: Colors.green,
+              child: const Icon(Icons.call, color: Colors.white),
+            ),
+            FloatingActionButton(
+              onPressed: _openWhatsApp,
+              heroTag: "whatsappButton",
+              backgroundColor: Colors.teal,
+              child:
+                  const Icon(Icons.message, color: Colors.white), // Fixed Icon
+            ),
+            FloatingActionButton(
+              onPressed: _shareAudioFile,
+              heroTag: "shareButton",
+              backgroundColor: Colors.teal,
+              child: const Icon(Icons.share, color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }

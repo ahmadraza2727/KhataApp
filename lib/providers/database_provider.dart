@@ -1,12 +1,17 @@
 import 'dart:async';
 
+import 'package:app_1/constants/predefined.dart';
+import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/services/database/database_exceptions.dart';
 import 'package:app_1/services/database/database_services.dart';
 import 'package:flutter/material.dart';
 
 class DatabaseProvider with ChangeNotifier {
+  DatabaseProvider({required this.nprovider});
+  final NavigationProvider nprovider;
   String? _currrentEmail;
   //INFO : list of caches
+  List<PersonDatabase> personsList = [];
   List<PersonDatabase> personsCache = [];
   Set<PersonDatabase> personSet = {};
   // final StreamController<List<PersonDatabase>> _personStreamController =
@@ -16,6 +21,8 @@ class DatabaseProvider with ChangeNotifier {
   //     _personStreamController.stream;
 
   List<UserDatabase> userCache = [];
+
+  List<TransactionDatabase> transactionList = [];
   List<TransactionDatabase> transactionCache = [];
 
   //INFO: global database service
@@ -48,14 +55,51 @@ class DatabaseProvider with ChangeNotifier {
       personSet.add(matchedPerson);
       return transaction; // ✅ Return transaction
     }).toList();
+    transactionList = transactions;
     transactionCache = transactions;
 
     //INFO: get filtered persons
 
+    personsList = personSet.toList();
     personsCache = personSet.toList();
     // _personStreamController.add(personsCache);
     print("added persons to persons cache");
     notifyListeners();
+  }
+
+  void Search(String search) {
+    print("searching $search");
+    switch (nprovider.getCurrenScreenName()) {
+      case screenNames.PEOPLE:
+        {
+          if (search.trim().isEmpty) {
+            personsList = personsCache;
+          } else {
+            final per = personsCache.where((person) => person.name
+                .toLowerCase()
+                .contains(search.trim().toLowerCase()));
+            personsList = per.toList();
+          }
+          notifyListeners(); // Moved outside the if-else block
+        }
+        break;
+      case screenNames.TRANSACTIONS:
+        {
+          if (search.trim().isEmpty) {
+            transactionList = transactionCache;
+            notifyListeners(); // Moved outside the if-else block
+          } else {
+            final tra = transactionCache.where((transaction) => transaction
+                .person!.name
+                .toLowerCase()
+                .contains(search.trim().toLowerCase()));
+            transactionList = tra.toList();
+          }
+          notifyListeners(); // Moved outside the if-else block
+        }
+        break;
+      default:
+    }
   }
 
   Future<UserDatabase> getUser({required String email}) async {
@@ -112,6 +156,7 @@ class DatabaseProvider with ChangeNotifier {
   void addPersonCache(PersonDatabase person) {
     print("adding to person cache");
     personsCache.add(person);
+    personsList.add(person);
     notifyListeners();
   }
 
@@ -119,6 +164,8 @@ class DatabaseProvider with ChangeNotifier {
   void updatePersonCache(PersonDatabase person) {
     personsCache.removeWhere((person_) => person_.id == person.id);
     personsCache.add(person);
+    personsList.removeWhere((person_) => person_.id == person.id);
+    personsList.add(person);
     notifyListeners();
     print("updating the person cache");
   }
@@ -128,6 +175,7 @@ class DatabaseProvider with ChangeNotifier {
     required PersonDatabase person,
     required int amount,
     required DateTime date,
+    required DateTime dueDate,
     required String reason,
     required String recording,
     required bool received,
@@ -138,6 +186,7 @@ class DatabaseProvider with ChangeNotifier {
         person: person,
         amount: amount,
         date: date,
+        dueDate: dueDate,
         reason: reason,
         recording: recording,
         received: received);
@@ -150,15 +199,20 @@ class DatabaseProvider with ChangeNotifier {
     deleteTransactionCache(id);
   }
 
-  Map<String,dynamic> getTransactionsOfAPerson(
-      {required int contactId}) {
-    int am = 0;
+  Map<String, dynamic> getTransactionsOfAPerson({required int contactId}) {
+    int ra = 0;
+    int rca = 0;
+    int ta = 0;
     final trs = transactionCache.where((transaction) {
       bool f = int.tryParse(transaction.person!.contactId) == contactId;
-      if (f) am = transaction.person!.receivedAmount;
+      if (f) {
+        ra = transaction.person!.remainingamount;
+        rca = transaction.person!.receivedAmount;
+        ta = transaction.person!.totalamount;
+      }
       return f;
     }).toList();
-    return {"amount": am, "transactions": trs};
+    return {"remaining": ra, "received": rca, "total": ta, "transactions": trs};
   }
 
   Future<TransactionDatabase> getTransaction({required int id}) =>
@@ -167,6 +221,7 @@ class DatabaseProvider with ChangeNotifier {
   // INFO : add a person to the global person cache
   void addTransactionCache(TransactionDatabase transaction) {
     print("adding transaction to transaction cache");
+    transactionList.add(transaction);
     transactionCache.add(transaction);
     notifyListeners();
   }
@@ -174,6 +229,7 @@ class DatabaseProvider with ChangeNotifier {
 //INFO: update a person in the person cache
   void deleteTransactionCache(int id) {
     print("updating transaction cache");
+    transactionList.removeWhere((transaction_) => transaction_.id == id);
     transactionCache.removeWhere((transaction_) => transaction_.id == id);
     notifyListeners();
   }

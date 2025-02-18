@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/services/auth/auth_user.dart';
 import 'package:app_1/services/database/database_exceptions.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -454,6 +452,7 @@ class KhataDatabaseServices {
     required bool received,
     required int amount,
     DateTime? date,
+    DateTime? dueDate,
   }) async {
     final Database database = await getDatabase();
     final person = await getPerson(
@@ -496,6 +495,9 @@ class KhataDatabaseServices {
     if (date != null) {
       updateData[dueDate_column_person_table] = date.toIso8601String();
     }
+    if (dueDate != null) {
+      updateData[dueDate_column_person_table] = dueDate.toIso8601String();
+    }
 
     final int result = await database.update(
       person_table_khata_database,
@@ -516,6 +518,7 @@ class KhataDatabaseServices {
     required PersonDatabase person,
     required int amount,
     required DateTime date,
+    required DateTime dueDate,
     required String reason,
     required String recording,
     required bool received,
@@ -549,6 +552,7 @@ class KhataDatabaseServices {
         email: owner.email,
         received: received,
         amount: amount,
+        dueDate: dueDate,
       );
 
       final td = TransactionDatabase(

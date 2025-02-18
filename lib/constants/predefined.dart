@@ -7,7 +7,7 @@ enum screenNames { HOME, TRANSACTIONS, CALENDER, PEOPLE, INFORM }
 
 List<IconData> icons_List = [
   Iconic.home,
-  Iconic.dollar,
+  Icons.receipt_long,
   Iconic.calendar,
   Iconic.man_head,
   Iconic.info,

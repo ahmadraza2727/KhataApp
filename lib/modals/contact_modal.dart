@@ -8,25 +8,28 @@ import 'package:app_1/constants/primary_colors.dart';
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 
-class ContactModal extends StatefulWidget {
+class CreateTransactionModal extends StatefulWidget {
   final void Function(Contact) onContactSelected;
   final Future<void> Function(Map<String, dynamic>) onDoneModal;
 
-  const ContactModal({
+  const CreateTransactionModal({
     super.key,
     required this.onContactSelected,
     required this.onDoneModal,
   });
 
   @override
-  State<ContactModal> createState() => _ContactModalState();
+  State<CreateTransactionModal> createState() => _CreateTransactionModalState();
 }
 
-class _ContactModalState extends State<ContactModal> {
+class _CreateTransactionModalState extends State<CreateTransactionModal> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _reasonController = TextEditingController();
   String _transactionType = "Received"; // Default value
   DateTime date = DateTime.now();
+  DateTime? selectedDate;
+
+  TextEditingController _dateController = TextEditingController();
 
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -34,6 +37,21 @@ class _ContactModalState extends State<ContactModal> {
   bool isRecording = false;
   int recordingDuration = 0;
   Timer? _timer;
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime.now(), // Default date
+      firstDate: DateTime(2000), // Earliest date
+      lastDate: DateTime(2100), // Latest date
+    );
+
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -168,46 +186,127 @@ class _ContactModalState extends State<ContactModal> {
                         maxLines: null, // Expands when needed
                         keyboardType: TextInputType.multiline,
                       ),
-                      SizedBox(height: 16),
-
-                      // Recording Controls
-                      Center(
+                      //INFO: due date
+                      Padding(
+                        padding: const EdgeInsets.all(10),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (isRecording)
-                              Text(
-                                "Recording: ${recordingDuration}s",
-                                style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red),
+                            AnimatedContainer(
+                              duration: Duration(
+                                milliseconds: 500,
                               ),
-                            SizedBox(height: 8),
-                            ElevatedButton.icon(
-                              onPressed: isRecording
-                                  ? _stopRecording
-                                  : _startRecording,
-                              icon: Icon(isRecording ? Icons.stop : Icons.mic),
-                              label: Text(isRecording
-                                  ? "Stop Recording"
-                                  : "Start Recording"),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    isRecording ? Colors.red : Colors.blue,
-                                foregroundColor: Colors.white,
+                              padding: EdgeInsets.only(top:4),
+                              height: selectedDate == null ? 0 : 20,
+                              child: Text(
+                                "Due Date",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
-                            if (recordingPath != "") ...[
-                              SizedBox(height: 10),
-                              ElevatedButton.icon(
-                                onPressed: _playRecording,
-                                icon: Icon(Icons.play_arrow),
-                                label: Text("Play Recording"),
-                              ),
-                            ],
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  selectedDate == null
+                                      ? "Select Due Date"
+                                      : "${selectedDate!.toLocal()}"
+                                          .split(' ')[0],
+                                  style: TextStyle(fontSize: 18),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    padding: EdgeInsets.all(4),
+                                  ),
+                                  onPressed: () => _selectDate(context),
+                                  child: Text("Pick a Date"),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
+                      SizedBox(height: 16),
+                      // Recording Controls
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              if (isRecording)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade100,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    "Recording: ${recordingDuration}s",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red.shade800,
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(height: 12),
+                              ElevatedButton.icon(
+                                onPressed: isRecording
+                                    ? _stopRecording
+                                    : _startRecording,
+                                icon: Icon(isRecording ? Icons.stop : Icons.mic,
+                                    size: 24),
+                                label: Text(
+                                  isRecording
+                                      ? "Stop Recording"
+                                      : "Start Recording",
+                                  style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      isRecording ? Colors.red : Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 24),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  elevation: 4,
+                                ),
+                              ),
+                              if (recordingPath.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  onPressed: _playRecording,
+                                  icon: const Icon(Icons.play_arrow, size: 24),
+                                  label: const Text(
+                                    "Play Recording",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12, horizontal: 24),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    elevation: 4,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      )
                     ],
                   ),
                 ),
@@ -234,6 +333,7 @@ class _ContactModalState extends State<ContactModal> {
                           _transactionType == "Received" ? true : false,
                       "reason": _reasonController.text,
                       "recording": recordingPath,
+                      "dueDate": selectedDate ?? DateTime.now(),
                     });
                     // widget.setPath(null);
                     Navigator.pop(context);

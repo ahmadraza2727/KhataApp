@@ -48,8 +48,8 @@ class _MainAppBarState extends State<MainAppBar> {
   }
 
   void handleSearchIconClick(NavigationProvider provider) {
-    provider.toggle_searchTextFeildOpenStatus();
     provider.set_menuOptionsOpenStatus();
+    provider.toggle_searchTextFeildOpenStatus();
   }
 
   void handleMenuIconClick(NavigationProvider provider) {
@@ -66,104 +66,126 @@ class _MainAppBarState extends State<MainAppBar> {
     print("Building MainAppBar");
 
     return Center(
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        height: 70,
-        width: MediaQuery.of(context).size.width,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            //INFO: Background container
-            Positioned(
-              left: MediaQuery.of(context).size.width * 0.1,
-              top: 15,
-              bottom: 0,
-              right: 0,
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: AnimatedContainer(
-                  duration: Duration(seconds: 1),
-                  decoration: BoxDecoration(
-                    color: (provider.searchTextFeildOpenStatus ||
-                            provider.menuOptionsOpenStatus)
-                        ? Primarycolors.darkColorFaded
-                        : Primarycolors.darkColor,
-                    borderRadius: BorderRadius.all(
-                      Radius.circular((provider.searchTextFeildOpenStatus ||
-                              provider.menuOptionsOpenStatus)
-                          ? 30
-                          : 5),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(60), // Shadow color
-                        blurRadius: 10, // Shadow blur
-                        spreadRadius: 0, // Shadow spread
-                        offset:
-                            Offset(0, 5), // Shift shadow downward (only bottom)
-                      ),
-                    ],
-                  ),
-                  // INFO : Icnon row
-                  child: iconRow(provider, context),
-                ),
-              ),
-            ),
-            // INFO: Title
-            TweenAnimationBuilder(
-                tween: ColorTween(
-                    begin: Primarycolors.darkColor,
-                    end: Primarycolors.secondaryColor),
-                duration: Duration(seconds: 5),
-                builder: (context, color, widgets) {
-                  return Container(
-                    padding: const EdgeInsets.all(10),
-                    width: 110,
-                    height: 53,
-                    decoration: BoxDecoration(
-                        color: color,
+      child: Consumer<NavigationProvider>(
+          builder: (context, navigationProvider, child) {
+        return GestureDetector(
+          onHorizontalDragEnd: (details) {
+            if (details.primaryVelocity! > 0) {
+              navigationProvider.navigateLeft();
+            } else if (details.primaryVelocity! < 0) {
+              navigationProvider.navigateRight();
+            }
+          },
+          onVerticalDragEnd: (details) {
+            if (details.primaryVelocity! > 0) {
+              navigationProvider.set_menuOptionsOpenStatus(true);
+              // setState(() => _swipeDirection = "Swiped Down");
+            } else if (details.primaryVelocity! < 0) {
+              navigationProvider.set_menuOptionsOpenStatus();
+              // setState(() => _swipeDirection = "Swiped Up");
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 20),
+            height: 65,
+            width: MediaQuery.of(context).size.width,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                //INFO: Background container
+                Positioned(
+                  left: MediaQuery.of(context).size.width * 0.1,
+                  top: 15,
+                  bottom: 0,
+                  right: 0,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                    child: AnimatedContainer(
+                      duration: Duration(seconds: 1),
+                      decoration: BoxDecoration(
+                        color: (provider.searchTextFeildOpenStatus ||
+                                provider.menuOptionsOpenStatus)
+                            ? Primarycolors.darkColorFaded
+                            : Primarycolors.darkColor,
                         borderRadius: BorderRadius.all(
-                          Radius.circular(15),
+                          Radius.circular((provider.searchTextFeildOpenStatus ||
+                                  provider.menuOptionsOpenStatus)
+                              ? 30
+                              : 5),
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withAlpha(60), // Shadow color
-                            blurRadius: 10, // Shadow blur
+                            blurRadius: 5, // Shadow blur
                             spreadRadius: 0, // Shadow spread
                             offset: Offset(
                                 0, 5), // Shift shadow downward (only bottom)
                           ),
-                        ]),
-                    child: Text(
-                      "KHATA",
-                      style: TextStyle(
-                        fontFamily: "Sans",
-                        color: Primarycolors.textDark,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
+                        ],
                       ),
+                      // INFO : Icnon row
+                      child: iconRow(provider, context),
                     ),
-                  );
-                }),
-            // Company name
-            Positioned(
-              left: 60,
-              top: 40,
-              child: Card(
-                elevation: 8,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Primarycolors.primaryColor,
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
-                  padding: const EdgeInsets.all(4),
-                  child: Text("Al-Ahmad"),
                 ),
-              ),
+                // INFO: Title
+                TweenAnimationBuilder(
+                    tween: ColorTween(
+                        begin: Primarycolors.darkColor,
+                        end: Primarycolors.secondaryColor),
+                    duration: Duration(seconds: 5),
+                    builder: (context, color, widgets) {
+                      return Container(
+                        padding: const EdgeInsets.all(10),
+                        width: 110,
+                        height: 53,
+                        decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(15),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    Colors.black.withAlpha(60), // Shadow color
+                                blurRadius: 10, // Shadow blur
+                                spreadRadius: 0, // Shadow spread
+                                offset: Offset(0,
+                                    5), // Shift shadow downward (only bottom)
+                              ),
+                            ]),
+                        child: Text(
+                          "KHATA",
+                          style: TextStyle(
+                            fontFamily: "Sans",
+                            color: Primarycolors.textDark,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      );
+                    }),
+                // Company name
+                Positioned(
+                  left: 60,
+                  top: 40,
+                  child: Card(
+                    elevation: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Primarycolors.primaryColor,
+                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: Text("Al-Ahmad"),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 

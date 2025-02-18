@@ -19,7 +19,7 @@ class AudioPlayerWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Recording $recordingPath ",
+              "Recording ",
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(

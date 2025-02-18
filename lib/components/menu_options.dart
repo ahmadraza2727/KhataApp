@@ -17,28 +17,43 @@ class _MenuOptionsState extends State<MenuOptions> {
   @override
   Widget build(BuildContext context) {
     print('building menu options screen');
-    final provider = Provider.of<NavigationProvider>(context);
+    final navigationProvider = Provider.of<NavigationProvider>(context);
 
-    return Stack(
-      // mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Animated Container for Sliding Effect
-        AnimatedContainer(
-          duration: Duration(milliseconds: 400), // Animation duration
-          height: provider.menuOptionsOpenStatus ? 60 : 0, // Dynamic height
-          curve: Curves.fastOutSlowIn, // Smooth animation curve
-          child: provider.menuOptionsOpenStatus
-              ? Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  margin: const EdgeInsets.all(5),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal, // Horizontal scrolling
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity! > 0) {
+          navigationProvider.navigateLeft();
+        } else if (details.primaryVelocity! < 0) {
+          navigationProvider.navigateRight();
+        }
+      },
+      onVerticalDragEnd: (details) {
+        if (details.primaryVelocity! > 0) {
+          navigationProvider.set_menuOptionsOpenStatus(true);
+          // setState(() => _swipeDirection = "Swiped Down");
+        } else if (details.primaryVelocity! < 0) {
+          navigationProvider.set_menuOptionsOpenStatus();
+          // setState(() => _swipeDirection = "Swiped Up");
+        }
+      },
+      child: Stack(
+        // mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Animated Container for Sliding Effect
+          AnimatedContainer(
+            duration: Duration(milliseconds: 400), // Animation duration
+            height: navigationProvider.menuOptionsOpenStatus ? 60 : 0, // Dynamic height
+            curve: Curves.fastOutSlowIn, // Smooth animation curve
+            child: navigationProvider.menuOptionsOpenStatus
+                ? Container(
+                    // padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    margin: const EdgeInsets.all(5),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(icons_List.length, (index) {
                         return GestureDetector(
                           onTap: () {
-                            provider.setCurrentPage(index);
+                            navigationProvider.setCurrentPage(index);
                           },
                           child: Card(
                             elevation: 2,
@@ -50,9 +65,9 @@ class _MenuOptionsState extends State<MenuOptions> {
                               right: 10,
                             ),
                             child: Container(
-                                padding: const EdgeInsets.all(10),
+                                padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: provider.getCurrentPage() == index
+                                  color: navigationProvider.getCurrentPage() == index
                                       ? Primarycolors.darkColor
                                       : Primarycolors.primaryColor,
                                   border: Border.all(
@@ -68,11 +83,11 @@ class _MenuOptionsState extends State<MenuOptions> {
                         );
                       }),
                     ),
-                  ),
-                )
-              : null, // Hide the widget when not visible
-        ),
-      ],
+                  )
+                : null, // Hide the widget when not visible
+          ),
+        ],
+      ),
     );
   }
 }

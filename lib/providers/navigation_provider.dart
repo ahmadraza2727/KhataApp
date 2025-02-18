@@ -40,6 +40,21 @@ class NavigationProvider with ChangeNotifier {
     return currentScreenName.index;
   }
 
+  screenNames getCurrenScreenName() {
+    return currentScreenName;
+  }
+
+  void navigateLeft() {
+    final next_page = (getCurrentPage()! - 1) % icons_List.length;
+    setCurrentPage(next_page);
+    notifyListeners();
+  }
+
+  void navigateRight() {
+    final next_page = (getCurrentPage()! + 1) % icons_List.length;
+    setCurrentPage(next_page);
+    notifyListeners();
+  }
   void setCurrentPage(int name) {
     currentScreenName = screenNames.values[name];
     notifyListeners();

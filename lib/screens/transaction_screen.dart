@@ -40,7 +40,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
 
         return Consumer<DatabaseProvider>(
           builder: (context, provider, child) {
-            final transactions = provider.transactionCache;
+            final transactions = provider.transactionList;
 
             return Scaffold(
               backgroundColor: Primarycolors.backgroundColor,
@@ -59,6 +59,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
               body: transactions.isNotEmpty
                   ? ListView.builder(
                       // padding: const EdgeInsets.all(4),
+                      padding: EdgeInsets.only(bottom: 80),
                       itemCount: transactions.length,
                       itemBuilder: (context, index) {
                         final transaction = transactions[index];
@@ -118,9 +119,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                   ),
                                 ),
                                 title: Text(
-                                  personName, maxLines: 1, 
-                                  overflow:
-                                      TextOverflow.ellipsis, 
+                                  personName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14),
@@ -165,6 +166,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                           contactId:
                                               transaction.person!.contactId,
                                           recording: transaction.recording,
+                                          person: transaction.person!,
                                         ),
                                       ),
                                     );
@@ -191,8 +193,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
                     ),
               floatingActionButton: FloatingActionButton(
                 heroTag: "fabTransaction",
-                onPressed: () =>
-                    showContactsModal(context, _onContactSelected, onDoneModal),
+                onPressed: () => showTransactionModal(
+                    context, _onContactSelected, onDoneModal),
                 backgroundColor: Primarycolors.primaryColor,
                 elevation: 8,
                 child:
@@ -223,6 +225,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
           person: person,
           amount: int.tryParse(map['amount'].toString()) ?? 0, // ✅ Fix Here
           date: DateTime.now(), // ✅ Removed unnecessary cast
+          dueDate : map["dueDate"],
           reason: reason,
           recording: recording,
           received: map['transactionType'] as bool);

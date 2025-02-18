@@ -20,7 +20,8 @@ void main() {
           create: (_) => NavigationProvider(),
         ),
         ChangeNotifierProvider(
-          create: (_) => DatabaseProvider(),
+          create: (context) =>
+              DatabaseProvider(nprovider: context.read<NavigationProvider>()),
         ),
       ],
       child: Main(),

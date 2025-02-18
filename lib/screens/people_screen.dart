@@ -23,7 +23,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
   Widget build(BuildContext context) {
     return Consumer<DatabaseProvider>(
       builder: (context, provider, child) {
-        final persons = provider.personsCache;
+        final persons = provider.personsList;
         return Scaffold(
           backgroundColor: Primarycolors.backgroundColor,
           appBar: AppBar(
@@ -99,6 +99,7 @@ class _PeopleScreenState extends State<PeopleScreen> {
                                     contactId:
                                         int.tryParse(person.contactId) ?? 0,
                                     personName: person.name,
+                                    selectedPerson: person,
                                   ),
                                 ),
                               );
@@ -119,67 +120,6 @@ class _PeopleScreenState extends State<PeopleScreen> {
           // ),
         );
       },
-    );
-  }
-
-  void _showContactsModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => FractionallySizedBox(
-        heightFactor: 0.85, // Covers 85% of the screen
-        child: Container(
-          padding: EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Select Contact",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Primarycolors.darkColor,
-                ),
-              ),
-              SizedBox(height: 10),
-              Expanded(
-                child: Center(
-                  child: Text(
-                    "Contact List Goes Here",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Primarycolors.textDark,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Primarycolors.darkColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  "Close",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

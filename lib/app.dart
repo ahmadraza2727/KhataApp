@@ -27,19 +27,19 @@ class _CenterAppState extends State<CenterApp> {
   @override
   void initState() {
     // provider = Provider.of<DatabaseProvider>(
-      // context,
-      // listen: false,
+    // context,
+    // listen: false,
     // );
 //
     // user = provider.getUser(
-        // email: AuthServices.firebase().currentUser!.email!.toString());
+    // email: AuthServices.firebase().currentUser!.email!.toString());
 //
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-  print("building center app ");
+    print("building center app ");
     // CounterProvider counterPorvider =
     //     Provider.of<CounterProvider>(context, listen = false);
     List<Widget> screens = [
@@ -76,11 +76,31 @@ class _CenterAppState extends State<CenterApp> {
                   Expanded(
                     // INFO : indexed stack
                     child: Consumer<NavigationProvider>(
-                      builder: (context, counterProvider, child) =>
-                          IndexedStack(
-                        index: counterProvider.getCurrentPage() as int,
-                        children: screens,
-                      ),
+                      builder: (context, navigationProvider, child) {
+                        return GestureDetector(
+                          onHorizontalDragEnd: (details) {
+                            if (details.primaryVelocity! > 0) {
+                              navigationProvider.navigateLeft();
+                            } else if (details.primaryVelocity! < 0) {
+                              navigationProvider.navigateRight();
+                            }
+                          },
+                          onVerticalDragEnd: (details) {
+                            if (details.primaryVelocity! > 0) {
+                              navigationProvider
+                                  .set_menuOptionsOpenStatus(true);
+                              // setState(() => _swipeDirection = "Swiped Down");
+                            } else if (details.primaryVelocity! < 0) {
+                              navigationProvider.set_menuOptionsOpenStatus();
+                              // setState(() => _swipeDirection = "Swiped Up");
+                            }
+                          },
+                          child: IndexedStack(
+                            index: navigationProvider.getCurrentPage() as int,
+                            children: screens,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

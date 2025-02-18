@@ -65,7 +65,7 @@ class _ContactTypeAheadState extends State<ContactTypeAhead> {
                 if (search.isEmpty) return contacts;
 
                 final filteredContacts = contacts.where((contact) {
-                  final name = contact.name.toString().toLowerCase();
+                  final name = contact.displayName.toString().toLowerCase();
                   final query = search.toLowerCase();
                   return name.contains(query);
                 }).toList();
@@ -83,7 +83,7 @@ class _ContactTypeAheadState extends State<ContactTypeAhead> {
               },
               itemBuilder: (context, contact) {
                 return ListTile(
-                  title: Text(contact.name.first.toString()),
+                  title: Text(contact.displayName.toString()),
                   subtitle: Text(contact.phones.first.number.toString()),
                 );
               },
