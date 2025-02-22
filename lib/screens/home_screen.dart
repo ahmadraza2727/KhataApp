@@ -20,10 +20,13 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           "Dashboard",
           style: TextStyle(
-              fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Primarycolors.textDark,
+          ),
         ),
         // backgroundColor: Colors.redAccent,
         actions: [
@@ -96,7 +99,11 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Text(
               title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Primarycolors.textDark,
+              ),
             ),
             Text(
               "PKR $amount",
@@ -129,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
       itemBuilder: (context, index) {
         final transaction = transactions[index];
         return Card(
-        color: Primarycolors.backgroundColor,
+          color: Primarycolors.backgroundColor,
           elevation: 2,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

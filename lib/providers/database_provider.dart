@@ -11,27 +11,23 @@ class DatabaseProvider with ChangeNotifier {
   final NavigationProvider nprovider;
   String? _currrentEmail;
   //INFO : list of caches
+
+  // persons to be accessed in all screens
+  // person list may change on based on search of the user but person cache contains all persons in all cases
   List<PersonDatabase> personsList = [];
+  //INFO : all persons that exist
   List<PersonDatabase> personsCache = [];
+  //set used to discriminate persons who have transactions
   Set<PersonDatabase> personSet = {};
-  // final StreamController<List<PersonDatabase>> _personStreamController =
-  //     StreamController<List<PersonDatabase>>.broadcast();
-  //
-  // Stream<List<PersonDatabase>> get personStream =>
-  //     _personStreamController.stream;
 
-  List<UserDatabase> userCache = [];
-
+  // transactions to be accessed in all screens
+  // transaction list may change on based on search of the user but transaction cache contains all transactions in all cases
   List<TransactionDatabase> transactionList = [];
   List<TransactionDatabase> transactionCache = [];
 
   //INFO: global database service
   static final KhataDatabaseServices _khataServices = KhataDatabaseServices();
 
-  //INFO: constructor
-  // DatabaseProvider(String email) {
-  //   initializeDatabase(email);
-  // }
   //INFO: main initialize function
   Future<void> initializeDatabase(String email) async {
     if (_currrentEmail != null && email == _currrentEmail) return;
@@ -41,25 +37,25 @@ class DatabaseProvider with ChangeNotifier {
     // INFO: initialize the database
     await _khataServices.getDatabase();
     //INFO: getting all the persons
-    final persons = await _khataServices.getAllPerson(email);
-    //TODO: getting all the users
+    final persons = await _khataServices.getAllPersonsWithEmail(email);
 
     //INFO : get all transactions
-    final t = await _khataServices.getAllTransactions(email);
-    final transactions = t.map((transaction) {
+    final allTransactions = await _khataServices.getAllTransactions(email);
+    final usersTransactions = allTransactions.map((transaction) {
       final matchedPerson = persons.firstWhere(
         (person) => person.id == transaction.personId,
       );
 
       transaction.setPerson(matchedPerson);
       personSet.add(matchedPerson);
-      return transaction; // ✅ Return transaction
+      return transaction;
     }).toList();
-    transactionList = transactions;
-    transactionCache = transactions;
+    transactionList = usersTransactions;
+    transactionCache = usersTransactions;
 
     //INFO: get filtered persons
 
+    // add the persons that hae transaction to the cache and list (initially the same)
     personsList = personSet.toList();
     personsCache = personSet.toList();
     // _personStreamController.add(personsCache);
@@ -144,7 +140,7 @@ class DatabaseProvider with ChangeNotifier {
   Future<PersonDatabase> getPerson({
     required String contactId,
   }) async {
-    final person = await _khataServices.getPerson(
+    final person = await _khataServices.getSinglePerson(
       contactId: contactId,
       email: _currrentEmail!,
     );

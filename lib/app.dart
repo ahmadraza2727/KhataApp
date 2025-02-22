@@ -2,7 +2,6 @@ import 'package:app_1/components/main_appbar.dart';
 import 'package:app_1/components/menu_options.dart';
 import 'package:app_1/components/search_feild.dart';
 import 'package:app_1/constants/primary_colors.dart';
-import 'package:app_1/providers/database_provider.dart';
 import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/screens/calender_screen.dart';
 import 'package:app_1/screens/home_screen.dart';
@@ -10,9 +9,9 @@ import 'package:app_1/screens/inform_screen.dart';
 import 'package:app_1/screens/people_screen.dart';
 import 'package:app_1/screens/transaction_screen.dart';
 import 'package:app_1/services/auth/auth_services.dart';
-import 'package:app_1/services/database/database_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:workmanager/workmanager.dart';
 
 class CenterApp extends StatefulWidget {
   const CenterApp({super.key});

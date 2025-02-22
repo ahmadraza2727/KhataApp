@@ -3,9 +3,11 @@ import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/providers/navigation_provider.dart';
+import 'package:app_1/services/auth/auth_exceptions.dart';
 import 'package:app_1/services/auth/auth_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainAppBar extends StatefulWidget {
   const MainAppBar({super.key});
@@ -41,7 +43,13 @@ class _MainAppBarState extends State<MainAppBar> {
     final bool confirm = await showConfirmationDialog(
         context, "Are You Sure", "Do you Want To Log Out");
     if (confirm) {
-      await AuthServices.firebase().logout();
+      try {
+        await AuthServices.firebase().logout();
+      } on UserNotLoggedInAuthException {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.remove(user_email_preference);
+        prefs.setBool(user_logged_in_preference, false);
+      }
       Navigator.of(context)
           .pushNamedAndRemoveUntil(home_route, (route) => false);
     }

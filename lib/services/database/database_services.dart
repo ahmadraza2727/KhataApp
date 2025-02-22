@@ -149,22 +149,22 @@ class UserDatabase {
   }
 }
 
-class KhataDatabaseServices {
+class LocalKhataDatabaseServices {
   // Future<void> initialize() async {
   //   await getDatabase();
   //   await cacheAllPerson();
   // }
 
   // Private constructor
-  KhataDatabaseServices._internal();
+  LocalKhataDatabaseServices._internal();
 
   // The single instance of the class
-  static final KhataDatabaseServices _khataService =
-      KhataDatabaseServices._internal();
+  static final LocalKhataDatabaseServices _khataService =
+      LocalKhataDatabaseServices._internal();
 
   // Factory constructor that returns the same instance
 
-  factory KhataDatabaseServices() => _khataService;
+  factory LocalKhataDatabaseServices() => _khataService;
 
   // List<PersonDatabase> _persons = [];
   //
@@ -385,7 +385,7 @@ class KhataDatabaseServices {
     return pd;
   }
 
-  Future<PersonDatabase> getPerson({
+  Future<PersonDatabase> getSinglePerson({
     required String contactId,
     required String email,
   }) async {
@@ -406,7 +406,25 @@ class KhataDatabaseServices {
     return PersonDatabase.fromRow(result.first);
   }
 
-  Future<Iterable<PersonDatabase>> getAllPerson(String email) async {
+  Future<Iterable<PersonDatabase>> getAllPersonWithoutEmail() async {
+    final Database database = await getDatabase();
+    try {
+      // final user = await getUser(email: email);
+      final List<Map<String, Object?>> result = await database.query(
+        person_table_khata_database,
+        // where: " $userId_column_person_table = ?",
+        // whereArgs: [user.id], // Pass both arguments
+      );
+
+      print("[DEBUG] getAllPerson found ${result.length} entries");
+      return result.map((person) => PersonDatabase.fromRow(person));
+    } catch (e) {
+      print("[ERROR] getAllPerson: $e");
+      rethrow;
+    }
+  }
+
+  Future<Iterable<PersonDatabase>> getAllPersonsWithEmail(String email) async {
     final Database database = await getDatabase();
     try {
       final user = await getUser(email: email);
@@ -455,7 +473,7 @@ class KhataDatabaseServices {
     DateTime? dueDate,
   }) async {
     final Database database = await getDatabase();
-    final person = await getPerson(
+    final person = await getSinglePerson(
       contactId: contactId,
       email: email,
     );
@@ -510,7 +528,7 @@ class KhataDatabaseServices {
       throw DatabasePersonNotUpdatedException();
     }
 
-    return await getPerson(contactId: person.contactId, email: email);
+    return await getSinglePerson(contactId: person.contactId, email: email);
   }
 
   Future<TransactionDatabase> createTransaction({
@@ -529,7 +547,7 @@ class KhataDatabaseServices {
     if (ud != owner) {
       throw DatabaseUserNotFoundException();
     }
-    final pd = await getPerson(
+    final pd = await getSinglePerson(
       contactId: person.contactId,
       email: owner.email,
     );
@@ -635,7 +653,7 @@ class KhataDatabaseServices {
     final database = await getDatabase();
     final user = await getUser(email: email);
     final person =
-        await getPerson(contactId: contactId.toString(), email: email);
+        await getSinglePerson(contactId: contactId.toString(), email: email);
     final List<Map<String, Object?>> result = await database.query(
       transaction_table_khata_database,
       limit: 1,

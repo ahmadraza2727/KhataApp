@@ -20,7 +20,11 @@ List<String> icons_Names = [
   "PEOPLE",
   "INFORM",
 ];
+//INFO: shared preferences
+const String user_email_preference = "user-email";
+const String user_logged_in_preference = "user-logged-in";
 
+//INFO: route names
 const String home_route = "/home/";
 // const String transaction_detail = "/home/";
 const String login_route = "/login/";

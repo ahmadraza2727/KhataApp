@@ -3,6 +3,7 @@ import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/services/auth/auth_exceptions.dart';
 import 'package:app_1/services/auth/auth_services.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -116,25 +117,44 @@ class _LoginScreenState extends State<LoginScreen> {
                               content: Text('logging in...'),
                             ),
                           );
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
                           try {
                             final user = await AuthServices.firebase().login(
                                 email: _emailController.text,
                                 password: _passwordController.text);
+
+                            //INFO: setuser in shared prefrences
+                            prefs.setString(
+                                user_email_preference, user.email.toString());
+
+                            prefs.setBool(user_logged_in_preference, true);
+
                             Navigator.of(context).pushNamedAndRemoveUntil(
                                 home_route, (route) => false);
                           } on WrongPasswordAuthException {
+                            prefs.remove(user_email_preference);
+                            prefs.setBool(user_logged_in_preference, false);
                             print("wrong password");
                             rethrow;
                           } on UserNotFoundAuthException {
+                            prefs.remove(user_email_preference);
+                            prefs.setBool(user_logged_in_preference, false);
                             print("user not found");
                             rethrow;
                           } on UserNotLoggedInAuthException {
+                            prefs.remove(user_email_preference);
+                            prefs.setBool(user_logged_in_preference, false);
                             print("user not logged in");
                             rethrow;
                           } on GenericAuthException {
+                            prefs.remove(user_email_preference);
+                            prefs.setBool(user_logged_in_preference, false);
                             print("generic exception");
                             rethrow;
                           } catch (e) {
+                            prefs.remove(user_email_preference);
+                            prefs.setBool(user_logged_in_preference, false);
                             print(e.toString());
                             rethrow;
                           }

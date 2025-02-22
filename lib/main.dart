@@ -6,13 +6,49 @@ import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/screens/email_verification_screen.dart';
 import 'package:app_1/screens/login_screen.dart';
 import 'package:app_1/screens/register_screen.dart';
+import 'package:app_1/screens/waiting_screen.dart';
 import 'package:app_1/services/auth/auth_services.dart';
-import 'package:app_1/services/auth/auth_user.dart';
+import 'package:app_1/services/notification/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 
-void main() {
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    switch (task) {
+      case "send_due_date_notifications":
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        String? userEmail = prefs.getString(user_email_preference);
+
+        if (userEmail != null) {
+          await NotificationService().showDueNotifications(userEmail);
+        }
+        break;
+      default:
+    }
+    return Future.value(true);
+  });
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await NotificationService().init(); // Initialize notifications
+
+  await Workmanager().initialize(
+    callbackDispatcher,
+    isInDebugMode: true,
+  );
+
+  Workmanager().registerPeriodicTask(
+    "check_due_dates", // unique name
+    "send_due_date_notifications", // task name
+    frequency: const Duration(
+      minutes: 5,
+    ),
+  );
   runApp(
     MultiProvider(
       providers: [
@@ -50,20 +86,39 @@ class _MainState extends State<Main> {
       theme: ThemeData(
           textTheme: TextTheme(
             // Override all text styles
-            displayLarge: TextStyle(fontFamily: "Sans"),
-            displayMedium: TextStyle(fontFamily: "Sans"),
-            displaySmall: TextStyle(fontFamily: "Sans"),
-            headlineMedium: TextStyle(fontFamily: "Sans"),
-            headlineSmall: TextStyle(fontFamily: "Sans"),
-            titleLarge: TextStyle(fontFamily: "Sans"),
-            titleMedium: TextStyle(fontFamily: "Sans"),
-            titleSmall: TextStyle(fontFamily: "Sans"),
-            bodyLarge: TextStyle(fontFamily: "Sans"),
-            bodyMedium: TextStyle(fontFamily: "Sans"),
+
+            displayLarge:
+                TextStyle(fontFamily: "Sans", color: Primarycolors.textDark),
+            displayMedium:
+                TextStyle(fontFamily: "Sans", color: Primarycolors.textDark),
+            displaySmall:
+                TextStyle(fontFamily: "Sans", color: Primarycolors.textDark),
+            headlineMedium:
+                TextStyle(fontFamily: "Sans", color: Primarycolors.textDark),
+            headlineSmall:
+                TextStyle(fontFamily: "Sans", color: Primarycolors.textDark),
+            titleLarge:
+                TextStyle(fontFamily: "Sans", color: Primarycolors.textDark),
+            titleMedium:
+                TextStyle(fontFamily: "Sans", color: Primarycolors.textDark),
+            titleSmall:
+                TextStyle(fontFamily: "Sans", color: Primarycolors.textDark),
+            bodyLarge:
+                TextStyle(fontFamily: "Sans", color: Primarycolors.textDark),
+            bodyMedium:
+                TextStyle(fontFamily: "Sans", color: Primarycolors.textDark),
             bodySmall: TextStyle(
-                fontFamily: "Sans"), // Lowercase intentional for demonstration
-            labelLarge: TextStyle(fontFamily: "Sans"),
-            labelSmall: TextStyle(fontFamily: "Sans"),
+                fontFamily: "Sans",
+                color: Primarycolors
+                    .textDark), // Lowercase intentional for demonstration
+            labelLarge: TextStyle(
+                fontFamily: "Sans",
+                color: Primarycolors
+                    .textDark), // Lowercase intentional for demonstration
+            labelSmall: TextStyle(
+                fontFamily: "Sans",
+                color: Primarycolors
+                    .textDark), // Lowercase intentional for demonstration
           ).apply(
             displayColor: Colors.black, // Default text color
             bodyColor: Colors.black,
@@ -135,18 +190,36 @@ class AuthWrapper extends StatelessWidget {
       future: AuthServices.firebase().initialize(),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const LoadingScreen();
+          return const WaitingScreen(
+            title: "waiting for database initialization",
+          );
         }
 
         final user = AuthServices.firebase().currentUser;
         if (user == null) return LoginScreen();
-        if (!user.isEmailVerified) {
-          return const EmailVerificationScreen();
-        }
+
+        //TODO: do something with email verification
+
+        // if (!user.isEmailVerified) {
+        // return const EmailVerificationScreen();
+        // }
 
         // DatabaseProvider will auto-update through ProxyProvider
-        context.read<DatabaseProvider>().initializeDatabase(user.email!);
-        return const CenterApp();
+        return FutureBuilder(
+            future: context
+                .read<DatabaseProvider>()
+                .initializeDatabase(user.email!),
+            builder: (context, snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.done:
+                  return const CenterApp();
+                  break;
+                default:
+                  return WaitingScreen(
+                    title: "waiting for databaase provider initialization",
+                  );
+              }
+            });
       },
     );
   }

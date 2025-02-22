@@ -1,6 +1,7 @@
 import 'package:app_1/services/auth/auth_provider.dart';
 import 'package:app_1/services/auth/auth_user.dart';
 import 'package:app_1/services/auth/firebase_auth_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthServices extends AuthProvider {
   final AuthProvider provider;
@@ -10,9 +11,11 @@ class AuthServices extends AuthProvider {
     await provider.initialize();
   }
 
-  AuthServices({required this.provider});
-  factory AuthServices.firebase() =>
-      AuthServices(provider: FirebaseAuthProvider());
+  // private constructor
+  AuthServices.instance({required this.provider});
+  static get instanceFirease =>
+      AuthServices.instance(provider: FirebaseAuthProvider());
+  factory AuthServices.firebase() => instanceFirease;
 
   @override
   Future<AuthUser> createUer(
@@ -23,8 +26,9 @@ class AuthServices extends AuthProvider {
   AuthUser? get currentUser => provider.currentUser;
 
   @override
-  Future<AuthUser> login({required String email, required String password}) =>
-      provider.login(email: email, password: password);
+  Future<AuthUser> login({required String email, required String password}) {
+    return provider.login(email: email, password: password);
+  }
 
   @override
   Future<void> logout() => provider.logout();
