@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/services/database/database_exceptions.dart';
-import 'package:app_1/services/database/database_services.dart';
+import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
 
 class DatabaseProvider with ChangeNotifier {
@@ -26,7 +26,8 @@ class DatabaseProvider with ChangeNotifier {
   List<TransactionDatabase> transactionCache = [];
 
   //INFO: global database service
-  static final KhataDatabaseServices _khataServices = KhataDatabaseServices();
+  static final LocalKhataDatabaseServices _khataServices =
+      LocalKhataDatabaseServices();
 
   //INFO: main initialize function
   Future<void> initializeDatabase(String email) async {

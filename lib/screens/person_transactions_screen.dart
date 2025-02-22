@@ -2,7 +2,7 @@ import 'package:app_1/modals/modals.dart';
 import 'package:app_1/providers/database_provider.dart';
 import 'package:app_1/screens/transaction_details.dart';
 import 'package:app_1/services/database/database_exceptions.dart';
-import 'package:app_1/services/database/database_services.dart';
+import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_contacts/contact.dart';

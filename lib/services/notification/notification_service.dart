@@ -1,5 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:app_1/services/database/database_services.dart';
+import 'package:app_1/services/database/local_database_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
@@ -37,7 +37,7 @@ class NotificationService {
   }
 
   Future<void> showDueNotifications(String userEmail) async {
-    final db = KhataDatabaseServices();
+    final db = LocalKhataDatabaseServices();
     await db.open();
     final persons = await db.getAllPersonsWithEmail(userEmail);
 
