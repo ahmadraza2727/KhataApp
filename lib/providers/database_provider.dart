@@ -5,11 +5,14 @@ import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/services/database/database_exceptions.dart';
 import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
+import 'package:app_1/services/auth/auth_user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DatabaseProvider with ChangeNotifier {
   DatabaseProvider({required this.nprovider});
   final NavigationProvider nprovider;
-  String? _currrentEmail;
+  AuthUser? currentUser;
+  // String? _currrentEmail;
   //INFO : list of caches
 
   // persons to be accessed in all screens
@@ -30,18 +33,26 @@ class DatabaseProvider with ChangeNotifier {
       LocalKhataDatabaseServices();
 
   //INFO: main initialize function
-  Future<void> initializeDatabase(String email) async {
-    if (_currrentEmail != null && email == _currrentEmail) return;
-    _currrentEmail = email;
+  Future<void> initializeDatabase(AuthUser user) async {
+    // if (currentUser != null && user.email == currentUser!.email) return;
+    // _currrentEmail = user.email;
+    // currentUser = user;
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.getString(user_email_preference) == null) {
+      prefs.setString(user_email_preference, user.email.toString());
+    }
     print("initialzing database");
-    print("and email is $_currrentEmail");
+    print("and email is ${currentUser!.email}");
     // INFO: initialize the database
     await _khataServices.getDatabase();
     //INFO: getting all the persons
-    final persons = await _khataServices.getAllPersonsWithEmail(email);
+    final persons =
+        await _khataServices.getAllPersonsWithEmail(currentUser!.email);
 
     //INFO : get all transactions
-    final allTransactions = await _khataServices.getAllTransactions(email);
+    final allTransactions =
+        await _khataServices.getAllTransactions(currentUser!.email);
     final usersTransactions = allTransactions.map((transaction) {
       final matchedPerson = persons.firstWhere(
         (person) => person.id == transaction.personId,
@@ -99,13 +110,30 @@ class DatabaseProvider with ChangeNotifier {
     }
   }
 
-  Future<UserDatabase> getUser({required String email}) async {
-    return await _khataServices.getUser(email: email);
+  // Future<UserDatabase> createUser({required AuthUser user}) async {
+  //   return await _khataServices.getUserFromAuthUser(user: user);
+  // }
+
+  void providerLogout() {
+    currentUser = null;
+    notifyListeners();
   }
 
-  Future<UserDatabase> getCurrentUser() async {
-    return await _khataServices.getUser(email: _currrentEmail!);
+  Future<UserDatabase> getUser() async {
+    return await _khataServices.getUserFromAuthUser(user: currentUser!);
   }
+
+  Future<void> setUser(AuthUser user) async {
+    print("setUser called with: ${user.email}");
+    currentUser = user;
+    await getUser();
+    print("Notifying listeners in setUser");
+    notifyListeners();
+  }
+
+  // Future<UserDatabase> getCurrentUser() async {
+  //   return await _khataServices.getUser(email: _currentUser!.email);
+  // }
 
   Future<PersonDatabase> createPerson({
     required String contactId,
@@ -115,7 +143,7 @@ class DatabaseProvider with ChangeNotifier {
     try {
       final person = await _khataServices.createPerson(
           contactId: contactId,
-          email: _currrentEmail!,
+          email: currentUser!.email,
           name: name,
           phoneNumber: phoneNumber);
       addPersonCache(person);
@@ -132,7 +160,7 @@ class DatabaseProvider with ChangeNotifier {
       DateTime? date}) async {
     final person = await _khataServices.updatePerson(
         contactId: contactId,
-        email: _currrentEmail!,
+        email: currentUser!.email,
         received: received,
         amount: amount);
     updatePersonCache(person);
@@ -143,7 +171,7 @@ class DatabaseProvider with ChangeNotifier {
   }) async {
     final person = await _khataServices.getSinglePerson(
       contactId: contactId,
-      email: _currrentEmail!,
+      email: currentUser!.email,
     );
     updatePersonCache(person);
     return person;
@@ -216,9 +244,12 @@ class DatabaseProvider with ChangeNotifier {
       _khataServices.getTransaction(id: id);
 
   // INFO : add a person to the global person cache
+  // TODO: check why there are two transactions if i dont delete the transaction
   void addTransactionCache(TransactionDatabase transaction) {
     print("adding transaction to transaction cache");
+    transactionList.removeWhere((tr) => transaction.id == tr.id);
     transactionList.add(transaction);
+    transactionCache.removeWhere((tr) => transaction.id == tr.id);
     transactionCache.add(transaction);
     notifyListeners();
   }

@@ -37,6 +37,12 @@ class NotificationService {
   }
 
   Future<void> showDueNotifications(String userEmail) async {
+    // print("sending notification");
+    //   await NotificationService().showNotification(
+    //     "Test Notification",
+    //     "This is a test notification",
+    //     999,
+    //   );
     final db = LocalKhataDatabaseServices();
     await db.open();
     final persons = await db.getAllPersonsWithEmail(userEmail);

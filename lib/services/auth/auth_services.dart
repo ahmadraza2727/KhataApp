@@ -11,16 +11,22 @@ class AuthServices extends AuthProvider {
     await provider.initialize();
   }
 
+  @override
+  Future<void> updateDisplayName(String name) =>
+      provider.updateDisplayName(name);
   // private constructor
   AuthServices.instance({required this.provider});
-  static get instanceFirease =>
+  static get instanceFirebase =>
       AuthServices.instance(provider: FirebaseAuthProvider());
-  factory AuthServices.firebase() => instanceFirease;
+  factory AuthServices.firebase() => instanceFirebase;
 
   @override
-  Future<AuthUser> createUer(
-          {required String email, required String password}) =>
-      provider.createUer(email: email, password: password);
+  Future<AuthUser> createUer({
+    required String email,
+    required String password,
+    required String name,
+  }) =>
+      provider.createUer(email: email, password: password, name: name);
 
   @override
   AuthUser? get currentUser => provider.currentUser;

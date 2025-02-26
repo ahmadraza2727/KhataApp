@@ -8,33 +8,11 @@ import 'package:app_1/screens/home_screen.dart';
 import 'package:app_1/screens/inform_screen.dart';
 import 'package:app_1/screens/people_screen.dart';
 import 'package:app_1/screens/transaction_screen.dart';
-import 'package:app_1/services/auth/auth_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:workmanager/workmanager.dart';
 
-class CenterApp extends StatefulWidget {
+class CenterApp extends StatelessWidget {
   const CenterApp({super.key});
-
-  @override
-  State<CenterApp> createState() => _CenterAppState();
-}
-
-class _CenterAppState extends State<CenterApp> {
-  // late Future<UserDatabase> user;
-  // late DatabaseProvider provider;
-  @override
-  void initState() {
-    // provider = Provider.of<DatabaseProvider>(
-    // context,
-    // listen: false,
-    // );
-//
-    // user = provider.getUser(
-    // email: AuthServices.firebase().currentUser!.email!.toString());
-//
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {

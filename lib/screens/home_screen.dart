@@ -34,8 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               Provider.of<DatabaseProvider>(context, listen: false)
-                  .initializeDatabase(
-                      AuthServices.firebase().currentUser!.email);
+                  .initializeDatabase(AuthServices.firebase().currentUser!);
             },
           ),
         ],

@@ -2,9 +2,11 @@ import 'dart:ui';
 import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
+import 'package:app_1/providers/database_provider.dart';
 import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/services/auth/auth_exceptions.dart';
 import 'package:app_1/services/auth/auth_services.dart';
+import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,12 +41,13 @@ class _MainAppBarState extends State<MainAppBar> {
         .pushNamedAndRemoveUntil(login_route, (route) => false);
   }
 
-  void handleLogoutIconClick() async {
+  void handleLogoutIconClick(DatabaseProvider provider) async {
     final bool confirm = await showConfirmationDialog(
         context, "Are You Sure", "Do you Want To Log Out");
     if (confirm) {
       try {
         await AuthServices.firebase().logout();
+        provider.providerLogout();
       } on UserNotLoggedInAuthException {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.remove(user_email_preference);
@@ -68,6 +71,10 @@ class _MainAppBarState extends State<MainAppBar> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<NavigationProvider>(
+      context,
+      listen: false,
+    );
+    final dbProvider = Provider.of<DatabaseProvider>(
       context,
       listen: false,
     );
@@ -132,7 +139,7 @@ class _MainAppBarState extends State<MainAppBar> {
                         ],
                       ),
                       // INFO : Icnon row
-                      child: iconRow(provider, context),
+                      child: iconRow(provider, dbProvider, context),
                     ),
                   ),
                 ),
@@ -197,7 +204,8 @@ class _MainAppBarState extends State<MainAppBar> {
     );
   }
 
-  Row iconRow(NavigationProvider provider, BuildContext context) {
+  Row iconRow(NavigationProvider provider, DatabaseProvider dbProvider,
+      BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -220,7 +228,7 @@ class _MainAppBarState extends State<MainAppBar> {
           ),
         if (AuthServices.firebase().currentUser != null)
           InkWell(
-            onTap: () => handleLogoutIconClick(),
+            onTap: () => handleLogoutIconClick(dbProvider),
             child: Container(
               padding: const EdgeInsets.all(8),
               child: Icon(Icons.logout, color: Primarycolors.textDark),

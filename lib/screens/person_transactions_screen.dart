@@ -5,7 +5,6 @@ import 'package:app_1/services/database/database_exceptions.dart';
 import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_contacts/contact.dart';
 import 'package:iconic/iconic.dart';
 import 'package:provider/provider.dart';
 import 'package:app_1/constants/primary_colors.dart';
@@ -198,7 +197,7 @@ class _PersonTransactionsScreenState extends State<PersonTransactionsScreen> {
 
   Future<void> onDoneModal(Map<String, dynamic> map) async {
     final provider = Provider.of<DatabaseProvider>(context, listen: false);
-    final owner = await provider.getCurrentUser();
+    final owner = await provider.getUser();
     final reason = map['reason'] as String;
     final recording = map['recording'] as String;
     try {
@@ -222,6 +221,7 @@ class _PersonTransactionsScreenState extends State<PersonTransactionsScreen> {
 
 class _amountInfo extends StatelessWidget {
   const _amountInfo({
+    // ignore: unused_element
     super.key,
     required this.ra,
     required this.icon,

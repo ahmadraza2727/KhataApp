@@ -15,16 +15,33 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   @override
+  Future<void> updateDisplayName(String name) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      //  update firebase user display name
+      await user.updateDisplayName(name);
+      await user.reload();
+    }
+  }
+
+  @override
   Future<AuthUser> createUer({
     required String email,
     required String password,
+    required String name,
   }) async {
     try {
-      await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
-      final user = currentUser;
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        return user;
+        //  update firebase user display name
+        await user.updateDisplayName(name);
+        await user.reload();
+
+        return currentUser!;
       } else {
         throw UserNotLoggedInAuthException();
       }

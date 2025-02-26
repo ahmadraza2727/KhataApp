@@ -5,7 +5,6 @@ import 'package:app_1/screens/person_transactions_screen.dart';
 import 'package:app_1/services/audio/player.dart';
 import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
-import 'package:iconic/iconic.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:ui';

@@ -196,21 +196,22 @@ class LocalKhataDatabaseServices {
 
       _database = await openDatabase(
         dbPath,
-        version: 7,
+        version: 9,
         onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) async {
           // Create tables if they don't exist
+          await db.execute(createTransactionTableQuery);
           await db.execute(createUserTableQuery);
           await db.execute(createPersonTableQuery);
-          await db.execute(createTransactionTableQuery);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
-          // print("deleted database");
-          // if (oldVersion < 7) {
-          // await db.execute(
-          // "DROP TABLE IF EXISTS $transaction_table_khata_database");
-          // await db.execute(createTransactionTableQuery);
-          // }
+          print("deleted database");
+          if (oldVersion < 9) {
+            // await db.execute(
+            // "DROP TABLE IF EXISTS $transaction_table_khata_database");
+            // await db
+            // .execute("DROP TABLE IF EXISTS $person_table_khata_database");
+          }
         },
       );
 
@@ -276,33 +277,37 @@ class LocalKhataDatabaseServices {
       user_table_khata_database,
       {
         email_column_user_table: user.email.toLowerCase(),
+        // name_column_user_table: user.name,
       },
     );
-    final ud = UserDatabase(id: userId, email: user.email);
+    final ud = UserDatabase(
+      id: userId,
+      email: user.email,
+    );
     return ud;
   }
 
 //INFO: create a databse user from email
-  Future<UserDatabase> createUser({required String email}) async {
-    final Database database = await getDatabase();
-    final List<Map<String, Object?>> result = await database.query(
-      user_table_khata_database,
-      limit: 1,
-      where: "$email_column_user_table = ?",
-      whereArgs: [email.toLowerCase()],
-    );
-    if (result.isNotEmpty) {
-      throw DatabaseUserAlreadyExistsException();
-    }
-    int userId = await database.insert(
-      user_table_khata_database,
-      {
-        email_column_user_table: email.toLowerCase(),
-      },
-    );
-    final ud = UserDatabase(id: userId, email: email);
-    return ud;
-  }
+  // Future<UserDatabase> createUser({required String email}) async {
+  //   final Database database = await getDatabase();
+  //   final List<Map<String, Object?>> result = await database.query(
+  //     user_table_khata_database,
+  //     limit: 1,
+  //     where: "$email_column_user_table = ?",
+  //     whereArgs: [email.toLowerCase()],
+  //   );
+  //   if (result.isNotEmpty) {
+  //     throw DatabaseUserAlreadyExistsException();
+  //   }
+  //   int userId = await database.insert(
+  //     user_table_khata_database,
+  //     {
+  //       email_column_user_table: email.toLowerCase(),
+  //     },
+  //   );
+  //   final ud = UserDatabase(id: userId, email: email);
+  //   return ud;
+  // }
 
 // INFO : get a database user from an AuthUser
   Future<UserDatabase> getUserFromAuthUser({required AuthUser user}) async {
@@ -313,13 +318,17 @@ class LocalKhataDatabaseServices {
       where: "$email_column_user_table = ?",
       whereArgs: [user.email.toLowerCase()],
     );
+    // create user if not exists
     if (result.isEmpty) {
-      final ud = await createUser(email: user.email.toLowerCase());
+      final ud = await createUserFromAuthUser(user: user);
       return ud;
     }
     final ud = UserDatabase.fromRow(result.first);
     return ud;
   }
+
+// TODO: chekc if deleted
+// /data/user/0/com.example.app_1/app_flutter/audio_1740485360379.aac
 
 //INFO:  get a databse user from email
   Future<UserDatabase> getUser({required String email}) async {
@@ -331,8 +340,9 @@ class LocalKhataDatabaseServices {
       whereArgs: [email.toLowerCase()],
     );
     if (result.isEmpty) {
-      final ud = await createUser(email: email);
-      return ud;
+      // final ud = await createUser(email: email);
+      // return ud;
+      throw DatabaseUserNotFoundException();
     }
     final ud = UserDatabase.fromRow(result.first);
     return ud;
@@ -473,13 +483,15 @@ class LocalKhataDatabaseServices {
     DateTime? dueDate,
   }) async {
     final Database database = await getDatabase();
-    final person = await getSinglePerson(
-      contactId: contactId,
-      email: email,
-    );
+    PersonDatabase? person;
 
-    if (person == null) {
-      throw DatabasePersonNotFoundException();
+    try {
+      person = await getSinglePerson(
+        contactId: contactId,
+        email: email,
+      );
+    } on DatabasePersonNotFoundException {
+      rethrow;
     }
 
     int remainingAmount = person.remainingamount;

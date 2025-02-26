@@ -20,6 +20,20 @@ List<String> icons_Names = [
   "PEOPLE",
   "INFORM",
 ];
+//INFO: firestore collection names
+const String users_collection_firestore = "users";
+const String transaction_collection_firestore = "transaction";
+const String person_collection_firestore = "person";
+
+const String uid_feild_users_collection = 'uid';
+const String name_feild_users_collection = "name";
+const String email_feild_users_collection = 'email';
+
+//INFO: Workmanager
+const String check_due_dates_name_workmanager = "check_due_dates";
+const String send_due_dates_notifications_task_workmanager =
+    "send_due_date_notifications";
+
 //INFO: shared preferences
 const String user_email_preference = "user-email";
 const String user_logged_in_preference = "user-logged-in";
@@ -39,6 +53,7 @@ const String person_table_khata_database = "person";
 //INFO: user table columns
 const String id_column_user_table = "user_id";
 const String email_column_user_table = "user_email";
+// const String name_column_user_table = "user_name";
 const String isEmailVerified_column_user_table = "user_is_email_verified";
 //INFO: person table columns
 const String id_column_person_table = "person_id";
@@ -70,15 +85,16 @@ const String createUserTableQuery = '''
     $email_column_user_table TEXT
   )
 ''';
+// $name_column_user_table TEXT
 
 //TODO: make contactid column not unique
 const String createPersonTableQuery = '''
   CREATE TABLE IF NOT EXISTS person (
     $id_column_person_table INTEGER PRIMARY KEY,
     $name_column_person_table TEXT,
-    $contactId_column_person_table TEXT UNIQUE,
+    $contactId_column_person_table TEXT ,
     $userId_column_person_table TEXT ,
-    $phoneNumber_column_person_table TEXT UNIQUE,
+    $phoneNumber_column_person_table TEXT ,
     $totalamount_column_person_table INTEGER DEFAULT 0,
     $receivedamount_column_person_table INTEGER DEFAULT 0,
     $remainingamount_column_person_table INTEGER DEFAULT 0,

@@ -1,11 +1,8 @@
-import 'dart:ui';
-
 import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/modals/modals.dart';
 import 'package:app_1/providers/database_provider.dart';
 import 'package:app_1/screens/transaction_details.dart';
-import 'package:app_1/services/auth/auth_services.dart';
 import 'package:app_1/services/database/database_exceptions.dart';
 import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
@@ -26,10 +23,9 @@ class _TransactionScreenState extends State<TransactionScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<DatabaseProvider>(context, listen: false);
-    final email = AuthServices.firebase().currentUser!.email;
 
     return FutureBuilder(
-      future: provider.getUser(email: email),
+      future: provider.getUser(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -47,7 +43,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
               appBar: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                title:  Text(
+                title: Text(
                   "Transactions",
                   style: TextStyle(
                     fontSize: 22,
@@ -207,14 +203,13 @@ class _TransactionScreenState extends State<TransactionScreen> {
     print("creating transaction");
     print(map);
     final provider = Provider.of<DatabaseProvider>(context, listen: false);
-    final owner = await provider.getCurrentUser();
+    final owner = await provider.getUser();
     final reason = map['reason'] as String;
     final recording = map['recording'] as String;
     print(reason);
     print(recording);
     print(map["transactionType"]);
-    final person =
-        await provider.getPerson(contactId: (selectedContact!.id).toString());
+    final person = await provider.getPerson(contactId: (selectedContact!.id));
     try {
       await provider.createTransaction(
           owner: owner,

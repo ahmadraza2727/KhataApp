@@ -17,6 +17,7 @@ class _SearchFeildState extends State<SearchFeild> {
 
   @override
   Widget build(BuildContext context) {
+    print("building search widget");
     final dbProvider = Provider.of<DatabaseProvider>(context, listen: false);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,

@@ -3,6 +3,9 @@ import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/services/auth/auth_exceptions.dart';
 import 'package:app_1/services/auth/auth_services.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void handleRegisteration() async {}
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,6 +20,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  void handleRegisteration() async {
+    if (_formKey.currentState!.validate()) {
+      // Perform registration action
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Registering...'),
+        ),
+      );
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      try {
+        final user = await AuthServices.firebase().createUer(
+          email: _emailController.text,
+          password: _passwordController.text,
+          name: _nameController.text,
+        );
+        prefs.setString(user_email_preference, user.email.toString());
+
+        prefs.setBool(user_logged_in_preference, true);
+
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(login_route, (route) => false);
+      } on EmailAlreadyInUseAuthException {
+        print("--------------------user already in use ");
+        rethrow;
+      } on WeakPasswordAuthException {
+        print("--------------------weak password");
+        rethrow;
+      } on InvalidEmailAuthException {
+        print("--------------------invalid email");
+        rethrow;
+      } catch (e) {
+        print(e.toString());
+        rethrow;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -143,36 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     SizedBox(height: 24),
                     // INFO : register button
                     ElevatedButton(
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          // Perform registration action
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Registering...'),
-                            ),
-                          );
-                          try {
-                            final user = await AuthServices.firebase()
-                                .createUer(
-                                    email: _emailController.text,
-                                    password: _passwordController.text);
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                                login_route, (route) => false);
-                          } on EmailAlreadyInUseAuthException {
-                            print("--------------------user already in use ");
-                            rethrow;
-                          } on WeakPasswordAuthException {
-                            print("--------------------weak password");
-                            rethrow;
-                          } on InvalidEmailAuthException {
-                            print("--------------------invalid email");
-                            rethrow;
-                          } catch (e) {
-                            print(e.toString());
-                            rethrow;
-                          }
-                        }
-                      },
+                      onPressed: handleRegisteration,
                       child: Text('Register'),
                     ),
                     SizedBox(height: 16),

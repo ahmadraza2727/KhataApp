@@ -3,6 +3,7 @@ import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/providers/database_provider.dart';
 import 'package:app_1/providers/navigation_provider.dart';
+import 'package:app_1/screens/auth_screen.dart';
 import 'package:app_1/screens/email_verification_screen.dart';
 import 'package:app_1/screens/login_screen.dart';
 import 'package:app_1/screens/register_screen.dart';
@@ -16,39 +17,69 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 void callbackDispatcher() {
+  WidgetsFlutterBinding.ensureInitialized(); // ✅ Ensure Flutter is initialized
+
   Workmanager().executeTask((task, inputData) async {
-    switch (task) {
-      case "send_due_date_notifications":
+    try {
+      debugPrint("-----------------WorkManager Task Executed: $task");
+
+      if (task == "task") {
+        debugPrint("----------Executing due date notifications task...");
+
         SharedPreferences prefs = await SharedPreferences.getInstance();
         String? userEmail = prefs.getString(user_email_preference);
 
         if (userEmail != null) {
+          debugPrint(
+              "-------------Email found: $userEmail - Sending notifications");
           await NotificationService().showDueNotifications(userEmail);
+          return Future.value(true);
+        } else {
+          debugPrint("-----------------No email found in SharedPreferences");
+          return Future.value(false);
         }
-        break;
-      default:
+      }
+
+      debugPrint("------------Unknown task: $task");
+      return Future.value(false);
+    } catch (e) {
+      debugPrint("❌ Error in WorkManager task: $e");
+      return Future.value(false);
     }
-    return Future.value(true);
   });
 }
 
+// void callbackDispatcher() {
+//   Workmanager().executeTask((task, inputData) async {
+//     print("WorkManager Task Executed: $task");
+//     return Future.value(true);
+//   });
+// }
+
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(); // Required for async main
 
-  await NotificationService().init(); // Initialize notifications
+  Workmanager().cancelAll();
 
+  await NotificationService().init();
   await Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: true,
+    isInDebugMode: true, // Set to false in release mode
   );
 
+  print("WorkManager Initialized");
   Workmanager().registerPeriodicTask(
-    "check_due_dates", // unique name
-    "send_due_date_notifications", // task name
-    frequency: const Duration(
-      minutes: 5,
-    ),
+    "task",
+    "task",
+    initialDelay: Duration(seconds: 10),
+    frequency: Duration(days: 1),
   );
+  // await NotificationService().showNotification(
+  //   "Test Notification",
+  //   "This is a test notification",
+  //   999,
+  // );
+  print("Task Registered");
   runApp(
     MultiProvider(
       providers: [
@@ -65,15 +96,10 @@ void main() async {
   );
 }
 
-class Main extends StatefulWidget {
+class Main extends StatelessWidget {
   // const MyClass({super.key});
   const Main({super.key});
 
-  @override
-  State<Main> createState() => _MainState();
-}
-
-class _MainState extends State<Main> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -170,7 +196,17 @@ class _MainState extends State<Main> {
               vertical: 8,
             ), // Inner padding for text
           )),
-      home: AuthWrapper(),
+      home: FutureBuilder(
+          future: AuthServices.firebase().initialize(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const WaitingScreen(
+                title: "waiting for firebase initialization",
+              );
+            }
+
+            return AuthWrapper();
+          }),
       routes: {
         home_route: (context) => AuthWrapper(),
         login_route: (context) => LoginScreen(),
@@ -181,49 +217,46 @@ class _MainState extends State<Main> {
   }
 }
 
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: AuthServices.firebase().initialize(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const WaitingScreen(
-            title: "waiting for database initialization",
-          );
-        }
-
-        final user = AuthServices.firebase().currentUser;
-        if (user == null) return LoginScreen();
-
-        //TODO: do something with email verification
-
-        // if (!user.isEmailVerified) {
-        // return const EmailVerificationScreen();
-        // }
-
-        // DatabaseProvider will auto-update through ProxyProvider
-        return FutureBuilder(
-            future: context
-                .read<DatabaseProvider>()
-                .initializeDatabase(user.email!),
-            builder: (context, snapshot) {
-              switch (snapshot.connectionState) {
-                case ConnectionState.done:
-                  return const CenterApp();
-                  break;
-                default:
-                  return WaitingScreen(
-                    title: "waiting for databaase provider initialization",
-                  );
-              }
-            });
-      },
-    );
-  }
-}
+// class AuthWrapper extends StatelessWidget {
+//   const AuthWrapper({super.key});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return FutureBuilder(
+//       future: AuthServices.firebase().initialize(),
+//       builder: (context, snapshot) {
+//         if (snapshot.connectionState != ConnectionState.done) {
+//           return const WaitingScreen(
+//             title: "waiting for database initialization",
+//           );
+//         }
+//
+//         final user = AuthServices.firebase().currentUser;
+//         if (user == null) return LoginScreen();
+//
+//         //TODO: do something with email verification
+//
+//         // if (!user.isEmailVerified) {
+//         // return const EmailVerificationScreen();
+//         // }
+//
+//         // DatabaseProvider will auto-update through ProxyProvider
+//         return FutureBuilder(
+//             future: context.read<DatabaseProvider>().initializeDatabase(user),
+//             builder: (context, snapshot) {
+//               switch (snapshot.connectionState) {
+//                 case ConnectionState.done:
+//                   return const CenterApp();
+//                 default:
+//                   return WaitingScreen(
+//                     title: "waiting for databaase provider initialization",
+//                   );
+//               }
+//             });
+//       },
+//     );
+//   }
+// }
 
 class LoadingScreen extends StatelessWidget {
   const LoadingScreen({super.key});
