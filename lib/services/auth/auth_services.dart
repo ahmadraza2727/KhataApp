@@ -29,6 +29,13 @@ class AuthServices extends AuthProvider {
       provider.createUer(email: email, password: password, name: name);
 
   @override
+  Future<bool> deleteUser({
+    required String email,
+    required String password,
+  }) =>
+      provider.deleteUser(email: email, password: password);
+
+  @override
   AuthUser? get currentUser => provider.currentUser;
 
   @override

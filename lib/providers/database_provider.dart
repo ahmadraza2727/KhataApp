@@ -42,8 +42,8 @@ class DatabaseProvider with ChangeNotifier {
     if (prefs.getString(user_email_preference) == null) {
       prefs.setString(user_email_preference, user.email.toString());
     }
-    print("initialzing database");
-    print("and email is ${currentUser!.email}");
+    // print("initialzing database");
+    // print("and email is ${currentUser!.email}");
     // INFO: initialize the database
     await _khataServices.getDatabase();
     //INFO: getting all the persons
@@ -52,7 +52,7 @@ class DatabaseProvider with ChangeNotifier {
 
     //INFO : get all transactions
     final allTransactions =
-        await _khataServices.getAllTransactions(currentUser!.email);
+        await _khataServices.getAllTransactionsLocal(currentUser!.email);
     final usersTransactions = allTransactions.map((transaction) {
       final matchedPerson = persons.firstWhere(
         (person) => person.id == transaction.personId,
@@ -71,13 +71,15 @@ class DatabaseProvider with ChangeNotifier {
     personsList = personSet.toList();
     personsCache = personSet.toList();
     // _personStreamController.add(personsCache);
-    print("added persons to persons cache");
+    // print("added persons to persons cache");
     notifyListeners();
   }
 
-  void Search(String search) {
-    print("searching $search");
+  void search(String search) {
+    // print("searching $search");
+    // print("searching on page ${nprovider.getCurrenScreenName()}");
     switch (nprovider.getCurrenScreenName()) {
+      case screenNames.HOME:
       case screenNames.PEOPLE:
         {
           if (search.trim().isEmpty) {
@@ -88,14 +90,12 @@ class DatabaseProvider with ChangeNotifier {
                 .contains(search.trim().toLowerCase()));
             personsList = per.toList();
           }
-          notifyListeners(); // Moved outside the if-else block
         }
         break;
       case screenNames.TRANSACTIONS:
         {
           if (search.trim().isEmpty) {
             transactionList = transactionCache;
-            notifyListeners(); // Moved outside the if-else block
           } else {
             final tra = transactionCache.where((transaction) => transaction
                 .person!.name
@@ -103,11 +103,39 @@ class DatabaseProvider with ChangeNotifier {
                 .contains(search.trim().toLowerCase()));
             transactionList = tra.toList();
           }
-          notifyListeners(); // Moved outside the if-else block
+        }
+        break;
+      case screenNames.CALENDER:
+        {
+          if (search.trim().isEmpty) {
+            personsList =
+                personsCache; // Show all transactions if search is empty
+          } else {
+            final per = personsCache.where((person) {
+              final personDueDate = person.dueDate;
+              final searchNumber =
+                  int.tryParse(search.trim()); // Convert search to number
+              // print("search number is $searchNumber  ${personDueDate.day}");
+
+              if (searchNumber != null) {
+                //  Match search number with Day, Month, or Year
+                return personDueDate.day == searchNumber ||
+                    personDueDate.month == searchNumber ||
+                    personDueDate.year == searchNumber;
+              }
+              // return false;
+              // If not a number, match person's name
+              return person.name
+                  .toLowerCase()
+                  .contains(search.trim().toLowerCase());
+            });
+            personsList = per.toList();
+          }
         }
         break;
       default:
     }
+    notifyListeners(); // Ensure UI updates
   }
 
   // Future<UserDatabase> createUser({required AuthUser user}) async {
@@ -124,10 +152,10 @@ class DatabaseProvider with ChangeNotifier {
   }
 
   Future<void> setUser(AuthUser user) async {
-    print("setUser called with: ${user.email}");
+    // print("setUser called with: ${user.email}");
     currentUser = user;
     await getUser();
-    print("Notifying listeners in setUser");
+    // print("Notifying listeners in setUser");
     notifyListeners();
   }
 
@@ -179,7 +207,7 @@ class DatabaseProvider with ChangeNotifier {
 
   // INFO : add a person to the global person cache
   void addPersonCache(PersonDatabase person) {
-    print("adding to person cache");
+    // print("adding to person cache");
     personsCache.add(person);
     personsList.add(person);
     notifyListeners();
@@ -192,7 +220,7 @@ class DatabaseProvider with ChangeNotifier {
     personsList.removeWhere((person_) => person_.id == person.id);
     personsList.add(person);
     notifyListeners();
-    print("updating the person cache");
+    // print("updating the person cache");
   }
 
   Future<TransactionDatabase> createTransaction({
@@ -215,6 +243,7 @@ class DatabaseProvider with ChangeNotifier {
         reason: reason,
         recording: recording,
         received: received);
+    getPerson(contactId: person.contactId);
     addTransactionCache(td);
     return td;
   }
@@ -246,7 +275,7 @@ class DatabaseProvider with ChangeNotifier {
   // INFO : add a person to the global person cache
   // TODO: check why there are two transactions if i dont delete the transaction
   void addTransactionCache(TransactionDatabase transaction) {
-    print("adding transaction to transaction cache");
+    // print("adding transaction to transaction cache");
     transactionList.removeWhere((tr) => transaction.id == tr.id);
     transactionList.add(transaction);
     transactionCache.removeWhere((tr) => transaction.id == tr.id);
@@ -256,7 +285,7 @@ class DatabaseProvider with ChangeNotifier {
 
 //INFO: update a person in the person cache
   void deleteTransactionCache(int id) {
-    print("updating transaction cache");
+    // print("updating transaction cache");
     transactionList.removeWhere((transaction_) => transaction_.id == id);
     transactionCache.removeWhere((transaction_) => transaction_.id == id);
     notifyListeners();

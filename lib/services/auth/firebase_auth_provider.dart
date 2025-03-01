@@ -3,7 +3,7 @@ import 'package:app_1/services/auth/auth_exceptions.dart';
 import 'package:app_1/services/auth/auth_provider.dart' show AuthProvider;
 import 'package:app_1/services/auth/auth_user.dart';
 import 'package:firebase_auth/firebase_auth.dart'
-    show FirebaseAuth, FirebaseAuthException;
+    show AuthCredential, EmailAuthProvider, FirebaseAuth, FirebaseAuthException;
 import 'package:firebase_core/firebase_core.dart';
 
 class FirebaseAuthProvider implements AuthProvider {
@@ -22,6 +22,31 @@ class FirebaseAuthProvider implements AuthProvider {
       await user.updateDisplayName(name);
       await user.reload();
     }
+  }
+
+  @override
+  Future<bool> deleteUser({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        AuthCredential credential = EmailAuthProvider.credential(
+          email: email,
+          password: password,
+        );
+
+        await user.reauthenticateWithCredential(credential);
+        await user.delete();
+
+        print("User reauthenticated and deleted successfully.");
+        return true;
+      }
+    } catch (e) {
+      print("Error: $e");
+    }
+    return false;
   }
 
   @override

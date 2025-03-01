@@ -42,22 +42,23 @@ class AudioPlayerService extends ChangeNotifier {
           await _player.getDuration() ?? Duration.zero; // Get duration
       notifyListeners();
     } else {
-      print("File not found: $filePath");
+      // print("File not found: $filePath");
     }
   }
 
-  Future<void> playAudio(String filePath) async {
+  Future<bool> playAudio(String filePath) async {
     if (isPlaying) {
       await _player.pause();
     } else {
       if (await File(filePath).exists()) {
         await _player.play(DeviceFileSource(filePath));
       } else {
-        print("File not found: $filePath");
-        return;
+        // print("File not found: $filePath");
+        return false;
       }
     }
     notifyListeners(); // Ensure UI updates
+    return true;
   }
 
   Future<void> seekAudio(Duration position) async {
@@ -65,6 +66,7 @@ class AudioPlayerService extends ChangeNotifier {
     notifyListeners(); // Ensure UI updates
   }
 
+  @override
   void dispose() {
     _player.dispose();
     super.dispose();

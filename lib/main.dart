@@ -1,4 +1,3 @@
-import 'package:app_1/app.dart';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/providers/database_provider.dart';
@@ -17,44 +16,37 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 void callbackDispatcher() {
-  WidgetsFlutterBinding.ensureInitialized(); // ✅ Ensure Flutter is initialized
+  WidgetsFlutterBinding.ensureInitialized();
 
   Workmanager().executeTask((task, inputData) async {
     try {
-      debugPrint("-----------------WorkManager Task Executed: $task");
+      // debugPrint("-----------------WorkManager Task Executed: $task");
 
       if (task == "task") {
-        debugPrint("----------Executing due date notifications task...");
+        // debugPrint("----------Executing due date notifications task...");
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
         String? userEmail = prefs.getString(user_email_preference);
 
         if (userEmail != null) {
-          debugPrint(
-              "-------------Email found: $userEmail - Sending notifications");
+          // debugPrint(
+          // "-------------Email found: $userEmail - Sending notifications");
           await NotificationService().showDueNotifications(userEmail);
           return Future.value(true);
         } else {
-          debugPrint("-----------------No email found in SharedPreferences");
+          // debugPrint("-----------------No email found in SharedPreferences");
           return Future.value(false);
         }
       }
 
-      debugPrint("------------Unknown task: $task");
+      // debugPrint("------------Unknown task: $task");
       return Future.value(false);
     } catch (e) {
-      debugPrint("❌ Error in WorkManager task: $e");
+      // debugPrint(" Error in WorkManager task: $e");
       return Future.value(false);
     }
   });
 }
-
-// void callbackDispatcher() {
-//   Workmanager().executeTask((task, inputData) async {
-//     print("WorkManager Task Executed: $task");
-//     return Future.value(true);
-//   });
-// }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Required for async main
@@ -67,19 +59,15 @@ void main() async {
     isInDebugMode: true, // Set to false in release mode
   );
 
-  print("WorkManager Initialized");
+  // print("WorkManager Initialized");
   Workmanager().registerPeriodicTask(
     "task",
     "task",
     initialDelay: Duration(seconds: 10),
     frequency: Duration(days: 1),
   );
-  // await NotificationService().showNotification(
-  //   "Test Notification",
-  //   "This is a test notification",
-  //   999,
-  // );
-  print("Task Registered");
+
+  // print("Task Registered");
   runApp(
     MultiProvider(
       providers: [
@@ -199,12 +187,21 @@ class Main extends StatelessWidget {
       home: FutureBuilder(
           future: AuthServices.firebase().initialize(),
           builder: (context, snapshot) {
+            // print("listening for firestore updates $userEmail and id $userId");
+            // if (userId != null && userEmail != null) {
+            // }
             if (snapshot.connectionState != ConnectionState.done) {
               return const WaitingScreen(
                 title: "waiting for firebase initialization",
               );
             }
 
+            // LocalKhataDatabaseServices db = LocalKhataDatabaseServices();
+            // listenForCloudTransactions(
+            //   AuthServices.firebase().currentUser!.email,
+            //   AuthServices.firebase().currentUser!.uid.toString(),
+            //   db,
+            // );
             return AuthWrapper();
           }),
       routes: {
@@ -234,7 +231,7 @@ class Main extends StatelessWidget {
 //         final user = AuthServices.firebase().currentUser;
 //         if (user == null) return LoginScreen();
 //
-//         //TODO: do something with email verification
+// TODOo: do something with email verification
 //
 //         // if (!user.isEmailVerified) {
 //         // return const EmailVerificationScreen();

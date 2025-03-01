@@ -51,6 +51,7 @@ class TransactionDatabase {
             (map[isSyncedWithCloud_column_transaction_table] == 1),
         recording =
             map[recording_column_transaction_table] as String; // <-- New field
+
   void setPerson(PersonDatabase person) {
     this.person = person;
   }
@@ -205,7 +206,6 @@ class LocalKhataDatabaseServices {
           await db.execute(createPersonTableQuery);
         },
         onUpgrade: (db, oldVersion, newVersion) async {
-          print("deleted database");
           if (oldVersion < 9) {
             // await db.execute(
             // "DROP TABLE IF EXISTS $transaction_table_khata_database");
@@ -219,7 +219,7 @@ class LocalKhataDatabaseServices {
       // Load initial data after opening
       // await cacheAllPerson();
     } catch (e) {
-      print("[ERROR] openDatabase: $e");
+      // print("[ERROR] openDatabase: $e");
       rethrow;
     }
   }
@@ -236,8 +236,12 @@ class LocalKhataDatabaseServices {
     }
   }
 
+  Database getDatabase() {
+    return _database!;
+  }
+
   //INFO: create a database instance of not exist and return
-  Future<Database> getDatabase() async {
+  Future<Database> getOrOpenDatabase() async {
     if (_database == null) {
       try {
         await open();
@@ -250,7 +254,7 @@ class LocalKhataDatabaseServices {
 
   //INFO: delete a database user object
   Future<void> deleteUser({required String email}) async {
-    final Database database = await getDatabase();
+    final Database database = await getOrOpenDatabase();
     final int deleteCount = await database.delete(
       user_table_khata_database,
       where: "$email_column_user_table = ?",
@@ -263,7 +267,7 @@ class LocalKhataDatabaseServices {
 
   // INFO : create a database user from an AuthUser
   Future<UserDatabase> createUserFromAuthUser({required AuthUser user}) async {
-    final Database database = await getDatabase();
+    final Database database = await getOrOpenDatabase();
     final List<Map<String, Object?>> result = await database.query(
       user_table_khata_database,
       limit: 1,
@@ -311,7 +315,7 @@ class LocalKhataDatabaseServices {
 
 // INFO : get a database user from an AuthUser
   Future<UserDatabase> getUserFromAuthUser({required AuthUser user}) async {
-    final Database database = await getDatabase();
+    final Database database = await getOrOpenDatabase();
     final List<Map<String, Object?>> result = await database.query(
       user_table_khata_database,
       limit: 1,
@@ -327,12 +331,9 @@ class LocalKhataDatabaseServices {
     return ud;
   }
 
-// TODO: chekc if deleted
-// /data/user/0/com.example.app_1/app_flutter/audio_1740485360379.aac
-
 //INFO:  get a databse user from email
   Future<UserDatabase> getUser({required String email}) async {
-    final Database database = await getDatabase();
+    final Database database = await getOrOpenDatabase();
     final List<Map<String, Object?>> result = await database.query(
       user_table_khata_database,
       limit: 1,
@@ -355,7 +356,7 @@ class LocalKhataDatabaseServices {
     required String name,
     required String phoneNumber,
   }) async {
-    final Database database = await getDatabase();
+    final Database database = await getOrOpenDatabase();
     // await database.delete(person_table_khata_database);
     final UserDatabase user = await getUser(email: email);
     final List<Map<String, Object?>> result = await database.query(
@@ -395,11 +396,29 @@ class LocalKhataDatabaseServices {
     return pd;
   }
 
+  Future<PersonDatabase> getSinglePersonWithId({
+    required String id,
+  }) async {
+    final Database database = await getOrOpenDatabase();
+    final List<Map<String, Object?>> result = await database.query(
+      person_table_khata_database,
+      limit: 1,
+      where: "$id_column_person_table = ? ",
+      whereArgs: [id], // Pass both arguments
+    );
+
+    if (result.isEmpty) {
+      throw DatabasePersonNotFoundException();
+    }
+
+    return PersonDatabase.fromRow(result.first);
+  }
+
   Future<PersonDatabase> getSinglePerson({
     required String contactId,
     required String email,
   }) async {
-    final Database database = await getDatabase();
+    final Database database = await getOrOpenDatabase();
     final UserDatabase user = await getUser(email: email);
     final List<Map<String, Object?>> result = await database.query(
       person_table_khata_database,
@@ -417,7 +436,7 @@ class LocalKhataDatabaseServices {
   }
 
   Future<Iterable<PersonDatabase>> getAllPersonWithoutEmail() async {
-    final Database database = await getDatabase();
+    final Database database = await getOrOpenDatabase();
     try {
       // final user = await getUser(email: email);
       final List<Map<String, Object?>> result = await database.query(
@@ -426,16 +445,16 @@ class LocalKhataDatabaseServices {
         // whereArgs: [user.id], // Pass both arguments
       );
 
-      print("[DEBUG] getAllPerson found ${result.length} entries");
+      // print("[DEBUG] getAllPerson found ${result.length} entries");
       return result.map((person) => PersonDatabase.fromRow(person));
     } catch (e) {
-      print("[ERROR] getAllPerson: $e");
+      // print("[ERROR] getAllPerson: $e");
       rethrow;
     }
   }
 
   Future<Iterable<PersonDatabase>> getAllPersonsWithEmail(String email) async {
-    final Database database = await getDatabase();
+    final Database database = await getOrOpenDatabase();
     try {
       final user = await getUser(email: email);
       final List<Map<String, Object?>> result = await database.query(
@@ -444,10 +463,10 @@ class LocalKhataDatabaseServices {
         whereArgs: [user.id], // Pass both arguments
       );
 
-      print("[DEBUG] getAllPerson found ${result.length} entries");
+      // print("[DEBUG] getAllPerson found ${result.length} entries");
       return result.map((person) => PersonDatabase.fromRow(person));
     } catch (e) {
-      print("[ERROR] getAllPerson: $e");
+      // print("[ERROR] getAllPerson: $e");
       rethrow;
     }
   }
@@ -482,7 +501,7 @@ class LocalKhataDatabaseServices {
     DateTime? date,
     DateTime? dueDate,
   }) async {
-    final Database database = await getDatabase();
+    final Database database = await getOrOpenDatabase();
     PersonDatabase? person;
 
     try {
@@ -498,9 +517,9 @@ class LocalKhataDatabaseServices {
     int totalReceivedAmount = person.receivedAmount;
     int totalAmount = person.totalamount;
 
-    print("Remaining amount: $remainingAmount");
-    print("Received amount: $totalReceivedAmount");
-    print("Total amount: $totalAmount");
+    // print("Remaining amount: $remainingAmount");
+    // print("Received amount: $totalReceivedAmount");
+    // print("Total amount: $totalAmount");
 
     if (received) {
       if (amount > totalAmount) {
@@ -554,7 +573,7 @@ class LocalKhataDatabaseServices {
     required bool received,
     bool isSyncedWithCloud = false,
   }) async {
-    final Database database = await getDatabase();
+    final Database database = await getOrOpenDatabase();
     final ud = await getUser(email: owner.email);
     if (ud != owner) {
       throw DatabaseUserNotFoundException();
@@ -600,13 +619,58 @@ class LocalKhataDatabaseServices {
       );
       return td;
     } catch (_) {
-      print("this is in db services");
+      // print("this is in db services");
+      rethrow;
+    }
+  }
+
+  Future<void> createTransactionFromCloud({
+    required TransactionDatabase td,
+    required UserDatabase user,
+  }) async {
+    int amount = td.amount;
+    DateTime date = td.date;
+    String reason = td.reason;
+    String recording = td.recording;
+    bool received = td.received;
+    bool isSyncedWithCloud = true;
+
+    final Database database = await getOrOpenDatabase();
+    final pd = await getSinglePersonWithId(
+      id: td.person.toString(),
+    );
+    try {
+      // ignore: unused_local_variable
+      int transactionId = await database.insert(
+        transaction_table_khata_database,
+        {
+          personId_column_transaction_table: td.personId,
+          userId_column_transaction_table: user.id,
+          amount_column_transaction_table: amount,
+          date_column_transaction_table: date.toIso8601String(),
+          reason_column_transaction_table: reason,
+          recording_column_transaction_table: recording,
+          received_column_transaction_table: received ? 1 : 0,
+          // ignore: dead_code
+          isSyncedWithCloud_column_transaction_table: isSyncedWithCloud ? 1 : 0,
+        },
+      );
+      // ignore: unused_local_variable
+      final person1 = await updatePerson(
+        contactId: pd.contactId,
+        email: user.email,
+        received: received,
+        amount: amount,
+        dueDate: date,
+      );
+    } catch (_) {
+      // print("this is in db services");
       rethrow;
     }
   }
 
   Future<void> deleteTransaction({required int id}) async {
-    final database = await getDatabase();
+    final database = await getOrOpenDatabase();
     final t = await database.query(
       transaction_table_khata_database,
       limit: 1,
@@ -614,7 +678,6 @@ class LocalKhataDatabaseServices {
       whereArgs: [id],
     );
     final transaction = t.first;
-
     final per = await database.query(
       person_table_khata_database,
       where: "$id_column_person_table = ?",
@@ -635,6 +698,8 @@ class LocalKhataDatabaseServices {
           !(transaction[received_column_transaction_table] == 1 ? true : false),
       amount: transaction[amount_column_transaction_table] as int,
     );
+    final recording = transaction[recording_column_transaction_table] as String;
+    File(recording).deleteSync(); // Ensure deletion
     final deleteCount = await database.delete(
       transaction_table_khata_database,
       where: "$id_column_transaction_table = ?",
@@ -645,8 +710,18 @@ class LocalKhataDatabaseServices {
     }
   }
 
+  Future<bool> transactionExists(int transactionId) async {
+    final db = await getOrOpenDatabase();
+    final result = await db.query(
+      transaction_table_khata_database,
+      where: 'id = ?',
+      whereArgs: [transactionId],
+    );
+    return result.isNotEmpty;
+  }
+
   Future<TransactionDatabase> getTransaction({required int id}) async {
-    final database = await getDatabase();
+    final database = await getOrOpenDatabase();
     final List<Map<String, Object?>> result = await database.query(
       transaction_table_khata_database,
       limit: 1,
@@ -662,7 +737,7 @@ class LocalKhataDatabaseServices {
 
   Future<Iterable<TransactionDatabase>> getTransactionsOfAPerson(
       {required int contactId, required String email}) async {
-    final database = await getDatabase();
+    final database = await getOrOpenDatabase();
     final user = await getUser(email: email);
     final person =
         await getSinglePerson(contactId: contactId.toString(), email: email);
@@ -683,8 +758,9 @@ class LocalKhataDatabaseServices {
     return td;
   }
 
-  Future<Iterable<TransactionDatabase>> getAllTransactions(String email) async {
-    final database = await getDatabase();
+  Future<Iterable<TransactionDatabase>> getAllTransactionsLocal(
+      String email) async {
+    final database = await getOrOpenDatabase();
     final user = await getUser(email: email);
     final List<Map<String, Object?>> result = await database.query(
       transaction_table_khata_database,

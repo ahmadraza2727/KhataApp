@@ -25,11 +25,12 @@ class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({super.key});
 
   @override
-  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
+  State<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
-  bool isResend = false;
+  bool isResend = true;
   int timer = 10;
   Timer? countdownTimer;
 
@@ -55,6 +56,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   @override
   void initState() {
+    sendVerification();
     super.initState();
     startTimer();
   }

@@ -1,13 +1,12 @@
 import 'dart:io';
-
 import 'package:app_1/components/audio_player.dart';
+import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/screens/person_transactions_screen.dart';
 import 'package:app_1/services/audio/player.dart';
 import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:ui';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:app_1/constants/primary_colors.dart';
 
@@ -35,32 +34,37 @@ class TransactionDetailsScreen extends StatelessWidget {
     required this.person,
   });
 
-  void _makeCall() async {
+  Future<bool> _makeCall() async {
     String cleanedPhoneNumber = phoneNumber.replaceAll(' ', '');
-    print("Calling: $cleanedPhoneNumber");
+    // print("Calling: $cleanedPhoneNumber");
 
     final Uri phoneUri = Uri.parse("tel:$cleanedPhoneNumber");
 
     if (await canLaunchUrl(phoneUri)) {
       await launchUrl(phoneUri);
+      return true;
     } else {
-      print("Could not launch call");
+      // print("Could not launch call");
+      return false;
     }
   }
 
-  void _openWhatsApp() async {
+  Future<bool> _openWhatsApp() async {
     String cleanedPhoneNumber = phoneNumber.replaceAll(' ', '');
-    print("WhatsApping: $cleanedPhoneNumber");
+    // print("WhatsApping: $cleanedPhoneNumber");
     Uri whatsappUri = Uri.parse("https://wa.me/$cleanedPhoneNumber");
 
     if (await canLaunchUrl(whatsappUri)) {
       await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+      return true;
     } else {
-      print("WhatsApp is not installed");
+      // print("WhatsApp is not installed");
+
+      return false;
     }
   }
 
-  void _shareAudioFile() async {
+  Future<bool> _shareAudioFile() async {
     if (recording != "") {
       final File audioFile = File(recording);
 
@@ -70,11 +74,12 @@ class TransactionDetailsScreen extends StatelessWidget {
           text: "Gave $amount to $personName ",
           subject: "The Date Was ${date.toString()}",
         );
+        return true;
       } else {
-        print("not sharinf");
-        // TODO: handle exception
+        return false;
       }
     }
+    return false;
   }
 
   @override
@@ -214,13 +219,17 @@ class TransactionDetailsScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               /// **Recording Player**
-              if (recording != "") ...[
-                ChangeNotifierProvider(
-                  create: (_) => AudioPlayerService(),
-                  child: AudioPlayerWidget(recordingPath: recording),
+              // if (recording != "") ...[
+              ChangeNotifierProvider(
+                create: (_) => AudioPlayerService(),
+                child: AudioPlayerWidget(
+                  recordingPath:
+                      '/data/user/0/com.example.app_1/app_flutter/audio_1740843342986.aac',
+                  // recordingPath: recording,
                 ),
-              ],
+              ),
             ],
+            // ],
           ),
         ),
       ),
@@ -232,24 +241,41 @@ class TransactionDetailsScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Evenly distribute
           children: [
             FloatingActionButton(
-              onPressed: _makeCall,
+              onPressed: () async {
+                bool success = await _makeCall();
+
+                if (!success && context.mounted) {
+                  showErrorDialog(context, "Error while sharing audio");
+                }
+              },
               heroTag: "callButton",
               backgroundColor: Colors.green,
               child: const Icon(Icons.call, color: Colors.white),
             ),
             FloatingActionButton(
-              onPressed: _openWhatsApp,
+              onPressed: () async {
+                bool success = await _openWhatsApp();
+                if (!success && context.mounted) {
+                  showErrorDialog(context, "Error while sharing audio");
+                }
+              },
               heroTag: "whatsappButton",
               backgroundColor: Colors.teal,
               child:
                   const Icon(Icons.message, color: Colors.white), // Fixed Icon
             ),
-            FloatingActionButton(
-              onPressed: _shareAudioFile,
-              heroTag: "shareButton",
-              backgroundColor: Colors.teal,
-              child: const Icon(Icons.share, color: Colors.white),
-            ),
+            if (recording != "")
+              FloatingActionButton(
+                onPressed: () async {
+                  bool success = await _shareAudioFile();
+                  if (!success && context.mounted) {
+                    showErrorDialog(context, "Error while sharing audio");
+                  }
+                },
+                heroTag: "shareButton",
+                backgroundColor: Colors.teal,
+                child: const Icon(Icons.share, color: Colors.white),
+              ),
           ],
         ),
       ),

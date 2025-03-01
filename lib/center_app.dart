@@ -16,7 +16,7 @@ class CenterApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("building center app ");
+    // print("building center app ");
     // CounterProvider counterPorvider =
     //     Provider.of<CounterProvider>(context, listen = false);
     List<Widget> screens = [

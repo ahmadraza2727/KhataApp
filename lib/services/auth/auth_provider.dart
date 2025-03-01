@@ -13,6 +13,10 @@ abstract class AuthProvider {
     required String password,
     required String name,
   });
+  Future<bool> deleteUser({
+    required String email,
+    required String password,
+  });
   Future<void> updateDisplayName(String name);
   Future<void> logout();
   Future<void> sendEmailVerification();

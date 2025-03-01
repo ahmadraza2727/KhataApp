@@ -45,5 +45,63 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+<key>FirebaseAppDelegateProxyEnabled</key>
+<true/>
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>com.googleusercontent.apps.577708149691-uecobv00jkib7j8inh0gtiqp04gde7iv.apps.googleusercontent.com
+</string>
+        </array>
+    </dict>
+</array>
+	<!-- ✅ Firebase & Google Services (If Using Firebase) -->
+	<!-- <key>GADApplicationIdentifier</key> -->
+	<!-- <string>ca-app-pub-xxxxxxxxxxxxxxxx~xxxxxxxxxx</string>  -->
+	<!-- Replace with your AdMob ID if using -->
+
+	<!-- ✅ Background Execution (Required for WorkManager, Notifications, Calls) -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+		<string>audio</string>  <!-- Required for call services -->
+		<string>remote-notification</string> <!-- Required for push notifications -->
+	</array>
+
+	<!-- ✅ Permissions for Contacts, Calls, and Notifications -->
+	<key>NSContactsUsageDescription</key>
+	<string>We need access to your contacts to manage communication.</string>
+
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to the microphone for call-related features.</string>
+
+	<key>NSCalendarsUsageDescription</key>
+	<string>We need access to calendars for scheduling.</string>
+
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to the camera for video calls and media uploads.</string>
+
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to store and retrieve images.</string>
+
+	<!-- ✅ Push Notifications -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+
+	<!-- ✅ Required for Background Task Scheduling -->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.khata.app.fetch</string>
+		<string>com.khata.app.processing</string>
+	</array>
 </dict>
 </plist>

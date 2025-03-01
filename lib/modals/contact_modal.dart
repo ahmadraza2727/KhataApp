@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/services/audio/recorder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -10,7 +11,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 class CreateTransactionModal extends StatefulWidget {
   final void Function(Contact) onContactSelected;
-  final Future<void> Function(Map<String, dynamic>) onDoneModal;
+  final Future<bool> Function(Map<String, dynamic>) onDoneModal;
 
   const CreateTransactionModal({
     super.key,
@@ -28,8 +29,6 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
   String _transactionType = "Received"; // Default value
   DateTime date = DateTime.now();
   DateTime? selectedDate;
-
-  TextEditingController _dateController = TextEditingController();
 
   final AudioRecorder _recorder = AudioRecorder();
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -61,9 +60,11 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
 
   @override
   void dispose() {
-    // if (recordingPath != null) {
-    //   File(recordingPath!).deleteSync(); // Ensure deletion
-    // }
+    print("disposing contact modal");
+    if (recordingPath != "") {
+      print("deleting the recording $recordingPath");
+      File(recordingPath).deleteSync(); // Ensure deletion
+    }
     _amountController.dispose();
     _reasonController.dispose();
     _timer?.cancel();
@@ -71,14 +72,18 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
   }
 
   void _startRecording() async {
-    // if (recordingPath != null) {
-    //   File f = File(recordingPath!);
-    //   f.deleteSync(); // Delete the file
-    //   setState(() {
-    //     recordingPath = null;
-    //   });
-    // }
-    await _recorder.startRecording();
+    if (recordingPath != "") {
+      File f = File(recordingPath);
+      f.deleteSync(); // Delete the file
+      setState(() {
+        recordingPath = "";
+      });
+    }
+    bool success = await _recorder.startRecording();
+    if (!success && mounted) {
+      showErrorDialog(context, "Microhpone permission denied");
+      return;
+    }
     setState(() {
       isRecording = true;
       recordingDuration = 0;
@@ -90,7 +95,9 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
         recordingDuration++;
       });
     });
-
+    if (!mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
           content: Text("Recording started..."),
@@ -110,6 +117,9 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
       isRecording = false;
     });
 
+    if (!mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
           content: Text("Recording saved!"), duration: Duration(seconds: 1)),
@@ -128,171 +138,164 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(), // Dismiss keyboard
-      child: FractionallySizedBox(
-        heightFactor: 0.85, // Adjust height of modal
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            // color: Primarycolors.backgroundColor,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              // Title
-              Center(
-                child: Text(
-                  "Make A Transaction",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Primarycolors.textDark,
+    return PopScope(
+      onPopInvokedWithResult: (didPop, dynamic) {
+        if (didPop) return; // If already popped, do nothing
+
+        if (recordingPath != "") {
+          print("deleting the recording $recordingPath");
+          File(recordingPath).deleteSync(); // Ensure deletion
+        }
+        // Navigate to another screen instead of closing the app
+        // Navigator.of(context)
+        //     .pushNamedAndRemoveUntil(home_route, (route) => false);
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(), // Dismiss keyboard
+        child: FractionallySizedBox(
+          heightFactor: 0.85, // Adjust height of modal
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              // color: Primarycolors.backgroundColor,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              children: [
+                // Title
+                Center(
+                  child: Text(
+                    "Make A Transaction",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Primarycolors.textDark,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 16),
+                SizedBox(height: 16),
 
-              // Scrollable content
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: BouncingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Contact Picker
-                      ContactTypeAhead(
-                        onContactSelected: widget.onContactSelected,
-                      ),
-                      SizedBox(height: 16),
-
-                      // Amount Input
-                      _buildInputField(
-                        controller: _amountController,
-                        label: "Amount",
-                        prefixText: "Rs ",
-                        keyboardType: TextInputType.number,
-                      ),
-                      SizedBox(height: 16),
-
-                      // Transaction Type Dropdown
-                      _buildDropdown(),
-                      SizedBox(height: 16),
-
-                      // Expandable Reason TextField
-                      _buildInputField(
-                        controller: _reasonController,
-                        label: "Reason",
-                        maxLines: null, // Expands when needed
-                        keyboardType: TextInputType.multiline,
-                      ),
-                      //INFO: due date
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AnimatedContainer(
-                              duration: Duration(
-                                milliseconds: 500,
-                              ),
-                              padding: EdgeInsets.only(top:4),
-                              height: selectedDate == null ? 0 : 20,
-                              child: Text(
-                                "Due Date",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  selectedDate == null
-                                      ? "Select Due Date"
-                                      : "${selectedDate!.toLocal()}"
-                                          .split(' ')[0],
-                                  style: TextStyle(fontSize: 18),
-                                ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    padding: EdgeInsets.all(4),
-                                  ),
-                                  onPressed: () => _selectDate(context),
-                                  child: Text("Pick a Date"),
-                                ),
-                              ],
-                            ),
-                          ],
+                // Scrollable content
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Contact Picker
+                        ContactTypeAhead(
+                          onContactSelected: widget.onContactSelected,
                         ),
-                      ),
-                      SizedBox(height: 16),
-                      // Recording Controls
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        SizedBox(height: 16),
+
+                        // Amount Input
+                        _buildInputField(
+                          controller: _amountController,
+                          label: "Amount",
+                          prefixText: "Rs ",
+                          keyboardType: TextInputType.number,
+                        ),
+                        SizedBox(height: 16),
+
+                        // Transaction Type Dropdown
+                        _buildDropdown(),
+                        SizedBox(height: 16),
+
+                        // Expandable Reason TextField
+                        _buildInputField(
+                          controller: _reasonController,
+                          label: "Reason",
+                          maxLines: null, // Expands when needed
+                          keyboardType: TextInputType.multiline,
+                        ),
+                        //INFO: due date
+                        Padding(
+                          padding: const EdgeInsets.all(10),
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (isRecording)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade100,
-                                    borderRadius: BorderRadius.circular(12),
+                              AnimatedContainer(
+                                duration: Duration(
+                                  milliseconds: 500,
+                                ),
+                                padding: EdgeInsets.only(top: 4),
+                                height: selectedDate == null ? 0 : 20,
+                                child: Text(
+                                  "Due Date",
+                                  style: TextStyle(
+                                    fontSize: 14,
                                   ),
-                                  child: Text(
-                                    "Recording: ${recordingDuration}s",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red.shade800,
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    selectedDate == null
+                                        ? "Select Due Date"
+                                        : "${selectedDate!.toLocal()}"
+                                            .split(' ')[0],
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      padding: EdgeInsets.all(4),
+                                    ),
+                                    onPressed: () => _selectDate(context),
+                                    child: Text("Pick a Date"),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        // Recording Controls
+                        Center(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                if (isRecording)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade100,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      "Recording: ${recordingDuration}s",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red.shade800,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              const SizedBox(height: 12),
-                              ElevatedButton.icon(
-                                onPressed: isRecording
-                                    ? _stopRecording
-                                    : _startRecording,
-                                icon: Icon(isRecording ? Icons.stop : Icons.mic,
-                                    size: 24),
-                                label: Text(
-                                  isRecording
-                                      ? "Stop Recording"
-                                      : "Start Recording",
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      isRecording ? Colors.red : Colors.blue,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 12, horizontal: 24),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  elevation: 4,
-                                ),
-                              ),
-                              if (recordingPath.isNotEmpty) ...[
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 12),
                                 ElevatedButton.icon(
-                                  onPressed: _playRecording,
-                                  icon: const Icon(Icons.play_arrow, size: 24),
-                                  label: const Text(
-                                    "Play Recording",
-                                    style: TextStyle(
+                                  onPressed: isRecording
+                                      ? _stopRecording
+                                      : _startRecording,
+                                  icon: Icon(
+                                      isRecording ? Icons.stop : Icons.mic,
+                                      size: 24),
+                                  label: Text(
+                                    isRecording
+                                        ? "Stop Recording"
+                                        : "Start Recording",
+                                    style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold),
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
+                                    backgroundColor:
+                                        isRecording ? Colors.red : Colors.blue,
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12, horizontal: 24),
@@ -302,49 +305,76 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                                     elevation: 4,
                                   ),
                                 ),
+                                if (recordingPath.isNotEmpty) ...[
+                                  const SizedBox(height: 16),
+                                  ElevatedButton.icon(
+                                    onPressed: _playRecording,
+                                    icon:
+                                        const Icon(Icons.play_arrow, size: 24),
+                                    label: const Text(
+                                      "Play Recording",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.green,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12, horizontal: 24),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      elevation: 4,
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-
-              // Sticky Submit Button at Bottom
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Primarycolors.darkColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                        )
+                      ],
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onPressed: () async {
-                    print("savinf transaction");
-                    print("recording path is $recordingPath");
-                    await widget.onDoneModal({
-                      "amount": _amountController.text,
-                      "transactionType":
-                          _transactionType == "Received" ? true : false,
-                      "reason": _reasonController.text,
-                      "recording": recordingPath,
-                      "dueDate": selectedDate ?? DateTime.now(),
-                    });
-                    // widget.setPath(null);
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    "Save Transaction",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
-              ),
-            ],
+
+                // Sticky Submit Button at Bottom
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Primarycolors.darkColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () async {
+                      bool success = await widget.onDoneModal({
+                        "amount": _amountController.text,
+                        "transactionType":
+                            _transactionType == "Received" ? true : false,
+                        "reason": _reasonController.text,
+                        "recording": recordingPath,
+                        "dueDate": selectedDate ?? DateTime.now(),
+                        "contaxt": context,
+                      });
+                      if (success) recordingPath = "";
+                      setState(() {});
+                      // widget.setPath(null);
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      "Save Transaction",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/services/auth/auth_exceptions.dart';
@@ -11,7 +12,7 @@ class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
@@ -20,7 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
+  String? errorText;
   void handleRegisteration() async {
     if (_formKey.currentState!.validate()) {
       // Perform registration action
@@ -37,24 +38,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
           name: _nameController.text,
         );
         prefs.setString(user_email_preference, user.email.toString());
-
+        prefs.setString(user_id_preference, user.uid.toString());
         prefs.setBool(user_logged_in_preference, true);
 
+        if (!mounted) return;
         Navigator.of(context)
             .pushNamedAndRemoveUntil(login_route, (route) => false);
       } on EmailAlreadyInUseAuthException {
-        print("--------------------user already in use ");
-        rethrow;
+        errorText = "Email Already In Use";
+        // print("--------------------user already in use ");
+        // rethrow;
       } on WeakPasswordAuthException {
-        print("--------------------weak password");
-        rethrow;
+        errorText = "Weak Password";
+        // print("--------------------weak password");
+        // rethrow;
       } on InvalidEmailAuthException {
-        print("--------------------invalid email");
-        rethrow;
+        errorText = "Invalid Email";
+        // print("--------------------invalid email");
+        // rethrow;
       } catch (e) {
-        print(e.toString());
-        rethrow;
+        // print(e.toString());
+        if (!mounted) return;
+        showErrorDialog(context, e.toString());
+        // rethrow;
       }
+      setState(() {});
     }
   }
 
@@ -168,6 +176,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         labelText: 'Confirm Password',
                         prefixIcon:
                             Icon(Icons.lock, color: Primarycolors.textLight),
+                        errorText: errorText,
                       ),
                       obscureText: true,
                       validator: (value) {

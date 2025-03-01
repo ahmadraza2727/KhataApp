@@ -38,7 +38,7 @@ class _SearchFeildState extends State<SearchFeild> {
                       onChanged: (value) {
                         print("User typed: $value");
                         print("the value of controller is ${_controller.text}");
-                        dbProvider.Search(value.toString());
+                        dbProvider.search(value.toString());
                         setState(() {});
                       },
                       decoration: InputDecoration(
@@ -50,7 +50,7 @@ class _SearchFeildState extends State<SearchFeild> {
                                 onPressed: () {
                                   _controller.clear();
 
-                                  dbProvider.Search("");
+                                  dbProvider.search("");
                                   setState(() {});
                                   // setState(() {}); // Update UI
                                 },

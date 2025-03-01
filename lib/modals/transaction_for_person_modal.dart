@@ -1,9 +1,5 @@
-import 'dart:io';
-
 import 'package:app_1/services/audio/recorder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:app_1/components/type_aheads.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
@@ -89,7 +85,7 @@ class _CreateTransactionForPersonModalState
         recordingDuration++;
       });
     });
-
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
           content: Text("Recording started..."),

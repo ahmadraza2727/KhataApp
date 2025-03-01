@@ -1,8 +1,12 @@
+import 'dart:io';
+
+import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/providers/database_provider.dart';
 import 'package:app_1/services/auth/auth_services.dart';
 import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,6 +17,31 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Future<void> deleteAllRecordings() async {
+    try {
+      // Get the directory where recordings are saved
+      final directory = await getApplicationDocumentsDirectory();
+      final dirPath = directory.path;
+
+      // List all files in the directory
+      final dir = Directory(dirPath);
+      if (await dir.exists()) {
+        List<FileSystemEntity> files = dir.listSync();
+
+        for (var file in files) {
+          // Check if the file matches the recording pattern
+          if (file is File && file.path.endsWith(".aac")) {
+            await file.delete();
+            print("Deleted: ${file.path}");
+          }
+        }
+        print("All recordings deleted successfully.");
+      }
+    } catch (e) {
+      print("Error deleting recordings: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +87,16 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Summary Cards
+                // TextButton(
+                //   onPressed: () async {
+                //     await deleteAllRecordings();
+                //     if (!context.mounted) return;
+                //     showInformationDialog(context, "Recordings deleted");
+                //   },
+                //   child: Text("delete all recordings"),
+                // ),
                 _buildSummaryCard("Total Amount", totalAmount, Colors.blue),
+
                 _buildSummaryCard(
                     "Received Amount", receivedAmount, Colors.green.shade700),
                 _buildSummaryCard(

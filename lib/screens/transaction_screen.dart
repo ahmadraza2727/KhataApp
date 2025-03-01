@@ -113,12 +113,16 @@ class _TransactionScreenState extends State<TransactionScreen> {
                                   size: 24,
                                 ),
                               ),
-                              title: Text(
-                                personName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 14),
+                              title: Hero(
+                                tag: transaction.id.toString(),
+                                child: Text(
+                                  personName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                ),
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,16 +203,17 @@ class _TransactionScreenState extends State<TransactionScreen> {
     );
   }
 
-  Future<void> onDoneModal(Map<String, dynamic> map) async {
-    print("creating transaction");
-    print(map);
+  Future<bool> onDoneModal(Map<String, dynamic> map) async {
+    // print("creating transaction");
+    // print(map);
     final provider = Provider.of<DatabaseProvider>(context, listen: false);
     final owner = await provider.getUser();
     final reason = map['reason'] as String;
     final recording = map['recording'] as String;
-    print(reason);
-    print(recording);
-    print(map["transactionType"]);
+    final childContext = map['context'] as BuildContext;
+    // print(reason);
+    // print(recording);
+    // print(map["transactionType"]);
     final person = await provider.getPerson(contactId: (selectedContact!.id));
     try {
       await provider.createTransaction(
@@ -220,12 +225,18 @@ class _TransactionScreenState extends State<TransactionScreen> {
           reason: reason,
           recording: recording,
           received: map['transactionType'] as bool);
+      return true;
     } on DatabasePersonamountGreaterThatTotalamountException catch (_) {
-      print("invalid amount recieved");
+      if (!childContext.mounted) return false;
+      showErrorDialog(childContext, "Received Amount Greater Than Sent Amount");
+      // print("invalid amount recieved");
     } catch (e) {
-      print("there is an error: $e");
-      rethrow;
+      if (!childContext.mounted) return false;
+      showErrorDialog(childContext, "Something Went Wrong");
+      // print("there is an error: $e");
+      // rethrow;
     }
+    return false;
   }
 
   Future<PersonDatabase> _onContactSelected(Contact contact) async {
@@ -241,8 +252,8 @@ class _TransactionScreenState extends State<TransactionScreen> {
       return await provider.getPerson(
           contactId: contact
               .id); // Navigator.pop(context, contact); // Close modal on selection
-    } catch (e) {
-      rethrow;
+      // } catch (e) {
+      // rethrow;
     }
   }
 }

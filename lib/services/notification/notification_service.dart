@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:app_1/services/database/local_database_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,34 +38,43 @@ class NotificationService {
   }
 
   Future<void> showDueNotifications(String userEmail) async {
-    // print("sending notification");
-    //   await NotificationService().showNotification(
-    //     "Test Notification",
-    //     "This is a test notification",
-    //     999,
-    //   );
     final db = LocalKhataDatabaseServices();
     await db.open();
-    final persons = await db.getAllPersonsWithEmail(userEmail);
+    final persons =
+        await db.getAllPersonsWithEmail(userEmail); // Async DB query
 
     final now = DateTime.now();
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    for (var person in persons) {
-      if (_isDueToday(person.dueDate, now)) {
-        String key = "notified_${person.id}";
-        bool alreadyNotified = prefs.getBool(key) ?? false;
+    // Compute only the filtering & notification check
+    final List<PersonDatabase> duePersons = await compute(_filterDuePersons, {
+      'persons': persons,
+      'currentDate': now,
+    });
 
-        if (!alreadyNotified) {
-          await showNotification(
-            "Payment Due: ${person.name}",
-            "Remaining: ${person.remainingamount} PKR. Due Today: ${DateFormat.yMMMd().format(person.dueDate)}",
-            person.id,
-          );
-          await prefs.setBool(key, true); // Mark as notified
-        }
+    for (var person in duePersons) {
+      String key = "notified_${person.id}";
+      bool alreadyNotified = prefs.getBool(key) ?? false;
+
+      if (!alreadyNotified) {
+        await showNotification(
+          "Payment Due: ${person.name}",
+          "Remaining: ${person.remainingamount} PKR. Due Today: ${DateFormat.yMMMd().format(person.dueDate)}",
+          person.id,
+        );
+        await prefs.setBool(key, true); // Mark as notified
       }
     }
+  }
+
+// Filtering logic runs in an isolate
+  List<PersonDatabase> _filterDuePersons(Map<String, dynamic> data) {
+    List<PersonDatabase> persons = List<PersonDatabase>.from(data['persons']);
+    DateTime currentDate = data['currentDate'];
+
+    return persons
+        .where((person) => _isDueToday(person.dueDate, currentDate))
+        .toList();
   }
 
   bool _isDueToday(DateTime dueDate, DateTime now) {

@@ -1,3 +1,4 @@
+import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/services/audio/player.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -74,7 +75,12 @@ class AudioPlayerWidget extends StatelessWidget {
                 size: 40,
                 color: Colors.blue,
               ),
-              onPressed: () => playerService.playAudio(recordingPath),
+              onPressed: () async {
+                bool success = await playerService.playAudio(recordingPath);
+                if (!success && context.mounted) {
+                  showErrorDialog(context, "Something Wrong With Audio File");
+                }
+              },
             ),
           ],
         ),

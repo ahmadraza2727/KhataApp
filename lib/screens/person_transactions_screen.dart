@@ -4,7 +4,6 @@ import 'package:app_1/screens/transaction_details.dart';
 import 'package:app_1/services/database/database_exceptions.dart';
 import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:iconic/iconic.dart';
 import 'package:provider/provider.dart';
 import 'package:app_1/constants/primary_colors.dart';
@@ -15,11 +14,11 @@ class PersonTransactionsScreen extends StatefulWidget {
   final PersonDatabase selectedPerson;
 
   const PersonTransactionsScreen({
-    Key? key,
+    super.key,
     required this.contactId,
     required this.personName,
     required this.selectedPerson,
-  }) : super(key: key);
+  });
 
   @override
   State<PersonTransactionsScreen> createState() =>
@@ -205,7 +204,7 @@ class _PersonTransactionsScreenState extends State<PersonTransactionsScreen> {
           owner: owner,
           person: widget.selectedPerson,
           amount: int.tryParse(map['amount'].toString()) ?? 0, // ✅ Fix Here
-          date: DateTime.now(), // ✅ Removed unnecessary cast
+          date: DateTime.now(),
           dueDate: map["dueDate"],
           reason: reason,
           recording: recording,
@@ -219,6 +218,7 @@ class _PersonTransactionsScreenState extends State<PersonTransactionsScreen> {
   }
 }
 
+// ignore: camel_case_types
 class _amountInfo extends StatelessWidget {
   const _amountInfo({
     // ignore: unused_element
@@ -276,7 +276,7 @@ class _amountInfo extends StatelessWidget {
             color: color,
           ),
           Text(
-            "Rs ${ra}",
+            "Rs $ra",
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,

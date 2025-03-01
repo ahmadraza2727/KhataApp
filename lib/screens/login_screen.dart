@@ -1,3 +1,4 @@
+import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/constants/predefined.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/providers/database_provider.dart';
@@ -19,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final _passwordController = TextEditingController();
 
+  String? emailErrorText;
   @override
   Widget build(BuildContext context) {
     final databaseProvider =
@@ -79,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Email',
                         prefixIcon:
                             Icon(Icons.email, color: Primarycolors.textLight),
+                        errorText: emailErrorText,
                       ),
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
@@ -115,44 +118,51 @@ class _LoginScreenState extends State<LoginScreen> {
                     ElevatedButton(
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // Perform registration action
+                          // Show loading message
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('logging in...'),
-                            ),
+                            SnackBar(content: Text('Logging in...')),
                           );
+
                           SharedPreferences prefs =
                               await SharedPreferences.getInstance();
                           try {
                             final user = await AuthServices.firebase().login(
-                                email: _emailController.text,
-                                password: _passwordController.text);
+                              email: _emailController.text,
+                              password: _passwordController.text,
+                            );
+
                             await databaseProvider.setUser(user);
 
-                            //INFO: setuser in shared prefrences
+                            // Store user in SharedPreferences
                             prefs.setString(
                                 user_email_preference, user.email.toString());
-
+                            prefs.setString(
+                                user_id_preference, user.uid.toString());
                             prefs.setBool(user_logged_in_preference, true);
-                            print("--------------email preference set ${prefs.get(user_email_preference)}");
+
+                            if (!context.mounted) return;
+
                             Navigator.of(context).pushNamedAndRemoveUntil(
-                                home_route, (route) => false);
+                              home_route,
+                              (route) => false,
+                            );
                           } on WrongPasswordAuthException {
-                            print("wrong password");
-                            rethrow;
+                            emailErrorText = "Invalid Email Or Password";
                           } on UserNotFoundAuthException {
-                            print("user not found");
-                            rethrow;
+                            emailErrorText = "Invalid Email Or Password";
                           } on UserNotLoggedInAuthException {
-                            print("user not logged in");
-                            rethrow;
+                            emailErrorText = "Invalid Email Or Password";
                           } on GenericAuthException {
-                            print("generic exception");
-                            rethrow;
+                            emailErrorText = "Invalid Email Or Password";
                           } catch (e) {
-                            print(e.toString());
-                            rethrow;
+                            if (!context.mounted) {
+                              return;
+                            }
+
+                            showErrorDialog(context, e.toString());
                           }
+
+                          setState(() {}); // Update UI after catching errors
                         }
                       },
                       child: Text('Login'),

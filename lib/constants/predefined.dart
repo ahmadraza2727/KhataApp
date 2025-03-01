@@ -37,6 +37,7 @@ const String send_due_dates_notifications_task_workmanager =
 //INFO: shared preferences
 const String user_email_preference = "user-email";
 const String user_logged_in_preference = "user-logged-in";
+const String user_id_preference = "user-id-preference";
 
 //INFO: route names
 const String home_route = "/home/";
@@ -87,7 +88,6 @@ const String createUserTableQuery = '''
 ''';
 // $name_column_user_table TEXT
 
-//TODO: make contactid column not unique
 const String createPersonTableQuery = '''
   CREATE TABLE IF NOT EXISTS person (
     $id_column_person_table INTEGER PRIMARY KEY,
