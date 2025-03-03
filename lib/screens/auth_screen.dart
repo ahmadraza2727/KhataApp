@@ -7,46 +7,67 @@ import 'package:app_1/services/auth/auth_user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final user = AuthServices.firebase().currentUser;
-    if (user == null) return LoginScreen();
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
 
-    return FutureBuilder(
-        future: context.read<DatabaseProvider>().setUser(user),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return WaitingScreen(title: "awiting to set user");
-          }
-          return Selector<DatabaseProvider, AuthUser?>(
-            selector: (_, provider) {
-              // print(
-                  // "Selector triggered with user: ${provider.currentUser?.email}");
-              return provider.currentUser;
-            },
-            builder: (context, user1, child) {
-              // print("Selector rebuilt with user: ${user1?.email}");
-              //INFO: authentication builder
-              return FutureBuilder(
-                future:
-                    context.read<DatabaseProvider>().initializeDatabase(user),
-                builder: (context, snapshot) {
-                  // print("FutureBuilder state: ${snapshot.connectionState}");
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    // print("Database Initialized");
-                    return const CenterApp();
-                  } else {
-                    return WaitingScreen(
-                      title: "Waiting for database provider initialization",
-                    );
-                  }
-                },
-              );
-            },
-          );
-        });
+class _AuthWrapperState extends State<AuthWrapper> {
+  bool _goToLogin = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUser();
+  }
+
+  Future<void> _checkUser() async {
+    await AuthServices.firebase().initialize();
+    final user = AuthServices.firebase().currentUser;
+    if (user == null) {
+      setState(() {
+        _goToLogin = true;
+      });
+    } else {
+      _initializeUser(user);
+    }
+  }
+
+  Future<void> _initializeUser(AuthUser user) async {
+    final stopwatch = Stopwatch()..start();
+
+    if (mounted) {
+      await context.read<DatabaseProvider>().setUser(user);
+    }
+    if (mounted) {
+      await context.read<DatabaseProvider>().initializeDatabase(user);
+    }
+    final elapsed = stopwatch.elapsedMilliseconds;
+    final remainingTime = 1000 - elapsed; // Ensure minimum 1 sec
+    if (remainingTime > 0) {
+      await Future.delayed(Duration(milliseconds: remainingTime));
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_goToLogin) {
+      return LoginScreen();
+    }
+
+    if (_isLoading) {
+      return const WaitingScreen();
+    }
+
+    return const CenterApp();
   }
 }

@@ -1,4 +1,5 @@
 import 'package:app_1/modals/contact_modal.dart';
+import 'package:app_1/modals/create_contact_modal.dart';
 import 'package:app_1/modals/reauthentication_modal.dart';
 import 'package:app_1/modals/transaction_for_person_modal.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +31,7 @@ void showTransactionModal(
 
 void showTransactionModalForPerson(
   BuildContext context,
-  Future<void> Function(Map<String, dynamic>) onDoneModal,
+  Future<bool> Function(Map<String, dynamic>) onDoneModal,
 ) {
   showModalBottomSheet(
     context: context,
@@ -65,6 +66,28 @@ void showReauthenticationModal(
       builder: (context) => SizedBox(
         height: MediaQuery.of(context).size.height * 0.95,
         child: CreateReauthenticationModal(
+          onDoneModal: onDoneModal,
+        ),
+      ),
+    ),
+  ).whenComplete(() {});
+}
+
+void showContactModal(
+  BuildContext context,
+  Future<bool> Function() onDoneModal,
+) {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    backgroundColor: Colors.white,
+    isScrollControlled: true,
+    builder: (context) => Builder(
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.95,
+        child: CreateContactScreen(
           onDoneModal: onDoneModal,
         ),
       ),

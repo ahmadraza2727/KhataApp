@@ -55,55 +55,85 @@ class _PeopleScreenState extends State<PeopleScreen> {
                   itemCount: persons.length,
                   itemBuilder: (context, index) {
                     final person = persons[index];
-                    return Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      color: Colors.white,
-                      child: ClipRRect(
-                        // clipBehavior: Clip.none,
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(12),
-                        ),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: ListTile(
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
+                    return Hero(
+                      tag: "person-${person.id.toString()}",
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          color: Colors.white,
+                          child: ClipRRect(
+                            // clipBehavior: Clip.none,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(12),
                             ),
-                            title: Text(
-                              person.name,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Primarycolors.textDark,
-                              ),
-                            ),
-                            subtitle: Text(
-                              person.phoneNumber,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            trailing: Icon(Icons.arrow_forward_ios,
-                                color: Primarycolors.textDark, size: 18),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      PersonTransactionsScreen(
-                                    contactId:
-                                        int.tryParse(person.contactId) ?? 0,
-                                    personName: person.name,
-                                    selectedPerson: person,
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              child: ListTile(
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                title: Text(
+                                  person.name,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Primarycolors.textDark,
                                   ),
                                 ),
-                              );
-                            },
+                                subtitle: Text(
+                                  person.phoneNumber,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                trailing: Icon(Icons.arrow_forward_ios,
+                                    color: Primarycolors.textDark, size: 18),
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    PageRouteBuilder(
+                                      transitionDuration: Duration(
+                                          milliseconds:
+                                              800), // Adjust duration as needed
+                                      pageBuilder: (context, animation,
+                                          secondaryAnimation) {
+                                        return PersonTransactionsScreen(
+                                          contactId:
+                                              int.tryParse(person.contactId) ??
+                                                  0,
+                                          personName: person.name,
+                                          selectedPerson: person,
+                                        );
+                                      },
+                                      transitionsBuilder: (context, animation,
+                                          secondaryAnimation, child) {
+                                        return FadeTransition(
+                                          opacity: animation,
+                                          child: child,
+                                        );
+                                      },
+                                    ),
+                                  );
+                                  // Navigator.push(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) =>
+                                  //         PersonTransactionsScreen(
+                                  //       contactId:
+                                  //           int.tryParse(person.contactId) ?? 0,
+                                  //       personName: person.name,
+                                  //       selectedPerson: person,
+                                  //     ),
+                                  //   ),
+                                  // );
+                                },
+                              ),
+                            ),
                           ),
                         ),
                       ),

@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:app_1/constants/primary_colors.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
+  final String transactionId;
   final String personName;
   final String contactId;
   final double amount;
@@ -32,6 +33,7 @@ class TransactionDetailsScreen extends StatelessWidget {
     required this.contactId,
     required this.recording,
     required this.person,
+    required this.transactionId,
   });
 
   Future<bool> _makeCall() async {
@@ -113,123 +115,132 @@ class TransactionDetailsScreen extends StatelessWidget {
               ),
             ],
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PersonTransactionsScreen(
-                        contactId: int.tryParse(contactId) ?? 0,
-                        personName: personName,
-                        selectedPerson: person,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Hero(
+                  tag: "transaction-$transactionId",
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PersonTransactionsScreen(
+                              contactId: int.tryParse(contactId) ?? 0,
+                              personName: personName,
+                              selectedPerson: person,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        personName,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Primarycolors.textDark,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ),
-                  );
-                },
-                child: Text(
-                  personName,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Primarycolors.textDark,
-                    decoration: TextDecoration.underline,
                   ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                phoneNumber,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade700,
+                const SizedBox(height: 6),
+                Text(
+                  phoneNumber,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                  ),
                 ),
-              ),
-              const Divider(height: 20),
+                const Divider(height: 20),
 
-              /// **Transaction Type (Received/Sent)**
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                /// **Transaction Type (Received/Sent)**
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      received ? "Received" : "Sent",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: received
+                            ? Colors.green.shade700
+                            : Colors.red.shade700,
+                      ),
+                    ),
+                    Icon(
+                      received ? Icons.arrow_downward : Icons.arrow_upward,
+                      color: received ? Colors.green : Colors.redAccent,
+                      size: 20,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                /// **Amount**
+                Text(
+                  "Rs ${amount.toStringAsFixed(2)}",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    // color: Primarycolors.textDark,
+                    color:
+                        received ? Colors.green.shade700 : Colors.red.shade700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                /// **Date**
+                Text(
+                  "Date: ${date.toLocal().toString().split(' ')[0]}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                /// **Reason**
+                if (reason.isNotEmpty) ...[
                   Text(
-                    received ? "Received" : "Sent",
+                    "Reason:",
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: received
-                          ? Colors.green.shade700
-                          : Colors.red.shade700,
+                      color: Primarycolors.textDark,
                     ),
                   ),
-                  Icon(
-                    received ? Icons.arrow_downward : Icons.arrow_upward,
-                    color: received ? Colors.green : Colors.redAccent,
-                    size: 20,
+                  const SizedBox(height: 4),
+                  Text(
+                    reason,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                 ],
-              ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 20),
 
-              /// **Amount**
-              Text(
-                "Rs ${amount.toStringAsFixed(2)}",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  // color: Primarycolors.textDark,
-                  color: received ? Colors.green.shade700 : Colors.red.shade700,
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              /// **Date**
-              Text(
-                "Date: ${date.toLocal().toString().split(' ')[0]}",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade700,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              /// **Reason**
-              if (reason.isNotEmpty) ...[
-                Text(
-                  "Reason:",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Primarycolors.textDark,
+                /// **Recording Player**
+                if (recording != "") ...[
+                  ChangeNotifierProvider(
+                    create: (_) => AudioPlayerService(),
+                    child: AudioPlayerWidget(
+                      // recordingPath:
+                      // '/data/user/0/com.example.app_1/app_flutter/audio_1740843342986.aac',
+                      recordingPath: recording,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  reason,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
+                ],
               ],
-
-              const SizedBox(height: 20),
-
-              /// **Recording Player**
-              // if (recording != "") ...[
-              ChangeNotifierProvider(
-                create: (_) => AudioPlayerService(),
-                child: AudioPlayerWidget(
-                  recordingPath:
-                      '/data/user/0/com.example.app_1/app_flutter/audio_1740843342986.aac',
-                  // recordingPath: recording,
-                ),
-              ),
-            ],
-            // ],
+            ),
           ),
         ),
       ),

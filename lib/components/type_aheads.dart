@@ -1,9 +1,10 @@
 import 'package:app_1/components/dialogs.dart';
+import 'package:app_1/modals/modals.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ContactTypeAhead extends StatefulWidget {
   final void Function(Contact) onContactSelected;
@@ -40,6 +41,10 @@ class _ContactTypeAheadState extends State<ContactTypeAhead> {
       showErrorDialog(context, "Permission denied");
       return [];
     }
+  }
+
+  Future<void> _openCreateContact() async {
+    showContactModal(context, onDoneModal);
   }
 
   @override
@@ -87,9 +92,24 @@ class _ContactTypeAheadState extends State<ContactTypeAhead> {
                   subtitle: Text(contact.phones.first.number.toString()),
                 );
               },
+              emptyBuilder: (context) {
+                return Flex(
+                  direction: Axis.horizontal,
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          _openCreateContact();
+                        },
+                        child: Text("Create Contact"),
+                      ),
+                    ),
+                  ],
+                );
+              },
               onSelected: (contact) {
                 selectedContact = contact;
-                print(selectedContact);
+                // print(selectedContact);
                 widget.onContactSelected(contact);
                 setState(() {});
               },
@@ -97,27 +117,19 @@ class _ContactTypeAheadState extends State<ContactTypeAhead> {
             if (selectedContact != null) ...[
               SizedBox(height: 20),
               Text('Selected Contact: ${selectedContact!.displayName}'),
-              if (selectedContact!.phones?.isNotEmpty ?? false)
-                Text('Phone: ${selectedContact!.phones!.first.number}'),
+              if (selectedContact!.phones.isNotEmpty ?? false)
+                Text('Phone: ${selectedContact!.phones.first.number}'),
             ],
           ],
         ); // print(contacts);
-        // return ListView.builder(
-        //   shrinkWrap: true,
-        //   itemCount: contacts.length,
-        //   itemBuilder: (context, index) {
-        //     final contact = contacts[index];
-        //     return ListTile(
-        //       leading: Icon(Icons.person),
-        //       title: Text(contact.displayName ?? 'No Name'),
-        //       subtitle: Text(contact.phones.isNotEmpty
-        //           ? contact.phones.first.number
-        //           : 'No Phone'),
-        //       onTap: () => widget.onContactSelected(contact),
-        //     );
-        //   },
-        // );
       },
     );
+  }
+
+  Future<bool> onDoneModal() async {
+    setState(() {
+      _fetchedContacts = _fetchContacts(context); // Assigning a new future
+    });
+    return true;
   }
 }

@@ -56,7 +56,7 @@ void main() async {
   await NotificationService().init();
   await Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: true, // Set to false in release mode
+    // isInDebugMode: true, // Set to false in release mode
   );
 
   // print("WorkManager Initialized");
@@ -191,17 +191,9 @@ class Main extends StatelessWidget {
             // if (userId != null && userEmail != null) {
             // }
             if (snapshot.connectionState != ConnectionState.done) {
-              return const WaitingScreen(
-                title: "waiting for firebase initialization",
-              );
+              return const WaitingScreen();
             }
 
-            // LocalKhataDatabaseServices db = LocalKhataDatabaseServices();
-            // listenForCloudTransactions(
-            //   AuthServices.firebase().currentUser!.email,
-            //   AuthServices.firebase().currentUser!.uid.toString(),
-            //   db,
-            // );
             return AuthWrapper();
           }),
       routes: {

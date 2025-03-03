@@ -1,3 +1,4 @@
+import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/modals/modals.dart';
 import 'package:app_1/providers/database_provider.dart';
 import 'package:app_1/screens/transaction_details.dart';
@@ -70,12 +71,18 @@ class _PersonTransactionsScreenState extends State<PersonTransactionsScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.personName,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                    Hero(
+                      tag: "person-${widget.selectedPerson.id.toString()}",
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Text(
+                          widget.personName,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
                       ),
                     ),
                     SizedBox(height: 15), // Adds spacing between items
@@ -114,20 +121,23 @@ class _PersonTransactionsScreenState extends State<PersonTransactionsScreen> {
                   itemBuilder: (context, index) {
                     final transaction = transactions[index];
                     final isReceived = transaction.received;
-
+                    
                     return GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => TransactionDetailsScreen(
-                              personName: transaction.person?.name ?? "Unknown",
+                              transactionId: transaction.id.toString(),
+                              personName:
+                                  transaction.person?.name ?? "Unknown",
                               amount: transaction.amount.toDouble(),
                               date: transaction.date,
                               reason: transaction.reason,
                               received: transaction.received,
-                              phoneNumber: transaction.person?.phoneNumber ??
-                                  "No-Number",
+                              phoneNumber:
+                                  transaction.person?.phoneNumber ??
+                                      "No-Number",
                               contactId: transaction.person!.contactId,
                               recording: transaction.recording,
                               person: transaction.person!,
@@ -140,14 +150,16 @@ class _PersonTransactionsScreenState extends State<PersonTransactionsScreen> {
                           isReceived
                               ? Icons.arrow_downward
                               : Icons.arrow_upward,
-                          color: isReceived ? Colors.green : Colors.redAccent,
+                          color:
+                              isReceived ? Colors.green : Colors.redAccent,
                         ),
                         title: Wrap(
                           children: [
                             Text(
                               "Amount: Rs ",
                               style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold),
                             ),
                             Text(
                               "${transaction.amount}",
@@ -194,11 +206,12 @@ class _PersonTransactionsScreenState extends State<PersonTransactionsScreen> {
     );
   }
 
-  Future<void> onDoneModal(Map<String, dynamic> map) async {
+  Future<bool> onDoneModal(Map<String, dynamic> map) async {
     final provider = Provider.of<DatabaseProvider>(context, listen: false);
     final owner = await provider.getUser();
     final reason = map['reason'] as String;
     final recording = map['recording'] as String;
+    final childContext = map['context'] as BuildContext;
     try {
       await provider.createTransaction(
           owner: owner,
@@ -209,12 +222,18 @@ class _PersonTransactionsScreenState extends State<PersonTransactionsScreen> {
           reason: reason,
           recording: recording,
           received: map['transactionType'] as bool);
+      return true;
     } on DatabasePersonamountGreaterThatTotalamountException catch (_) {
+      if (!childContext.mounted) return false;
+      showErrorDialog(childContext, "Received Amount Greater Than Sent Amount");
       // print("invalid amount recieved");
     } catch (e) {
+      if (!childContext.mounted) return false;
+      showErrorDialog(childContext, "Something Went Wrong");
       // print("there is an error: $e");
-      rethrow;
+      // rethrow;
     }
+    return false;
   }
 }
 
@@ -260,30 +279,32 @@ class _amountInfo extends StatelessWidget {
         ),
       ),
       padding: EdgeInsets.all(10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Text(
-          //   title,
-          //   style: TextStyle(
-          //     fontSize: 10,
-          //     fontWeight: FontWeight.w600,
-          //     color: Primarycolors.textDark,
-          //   ),
-          // ),
-          Icon(
-            icon,
-            color: color,
-          ),
-          Text(
-            "Rs $ra",
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Text(
+            //   title,
+            //   style: TextStyle(
+            //     fontSize: 10,
+            //     fontWeight: FontWeight.w600,
+            //     color: Primarycolors.textDark,
+            //   ),
+            // ),
+            Icon(
+              icon,
               color: color,
             ),
-          ),
-        ],
+            Text(
+              "Rs $ra",
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

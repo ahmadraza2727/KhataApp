@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:app_1/components/audio_player.dart';
 import 'package:app_1/components/dialogs.dart';
+import 'package:app_1/services/audio/player.dart';
 import 'package:app_1/services/audio/recorder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -8,6 +10,8 @@ import 'package:app_1/components/type_aheads.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:provider/provider.dart';
+// import 'package:url_launcher/url_launcher.dart';
 
 class CreateTransactionModal extends StatefulWidget {
   final void Function(Contact) onContactSelected;
@@ -73,6 +77,7 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
 
   void _startRecording() async {
     if (recordingPath != "") {
+      print("deleting recording for new recording $recordingPath");
       File f = File(recordingPath);
       f.deleteSync(); // Delete the file
       setState(() {
@@ -306,30 +311,42 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                                   ),
                                 ),
                                 if (recordingPath.isNotEmpty) ...[
-                                  const SizedBox(height: 16),
-                                  ElevatedButton.icon(
-                                    onPressed: _playRecording,
-                                    icon:
-                                        const Icon(Icons.play_arrow, size: 24),
-                                    label: const Text(
-                                      "Play Recording",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 12, horizontal: 24),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      elevation: 4,
+                                  SizedBox(height: 30),
+                                  ChangeNotifierProvider(
+                                    create: (_) => AudioPlayerService(),
+                                    child: AudioPlayerWidget(
+                                      // recordingPath:
+                                      // '/data/user/0/com.example.app_1/app_flutter/audio_1740843342986.aac',
+                                      recordingPath: recordingPath,
                                     ),
                                   ),
                                 ],
                               ],
+                              // if (recordingPath.isNotEmpty) ...[
+                              //   const SizedBox(height: 16),
+                              //   ElevatedButton.icon(
+                              //     onPressed: _playRecording,
+                              //     icon:
+                              //         const Icon(Icons.play_arrow, size: 24),
+                              //     label: const Text(
+                              //       "Play Recording",
+                              //       style: TextStyle(
+                              //           fontSize: 16,
+                              //           fontWeight: FontWeight.bold),
+                              //     ),
+                              //     style: ElevatedButton.styleFrom(
+                              //       backgroundColor: Colors.green,
+                              //       foregroundColor: Colors.white,
+                              //       padding: const EdgeInsets.symmetric(
+                              //           vertical: 12, horizontal: 24),
+                              //       shape: RoundedRectangleBorder(
+                              //         borderRadius: BorderRadius.circular(10),
+                              //       ),
+                              //       elevation: 4,
+                              //     ),
+                              //   ),
+                              // ],
+                              // ],
                             ),
                           ),
                         )
@@ -343,7 +360,9 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Primarycolors.darkColor,
+                      backgroundColor: _transactionType == "Gave"
+                          ? Colors.red.shade700
+                          : Colors.green.shade700,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -358,7 +377,7 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                         "reason": _reasonController.text,
                         "recording": recordingPath,
                         "dueDate": selectedDate ?? DateTime.now(),
-                        "contaxt": context,
+                        "context": context,
                       });
                       if (success) recordingPath = "";
                       setState(() {});
@@ -368,8 +387,10 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                     },
                     child: Text(
                       "Save Transaction",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -430,6 +451,12 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
             _transactionType = newValue!;
           });
         },
+        iconDisabledColor: _transactionType == "Gave"
+            ? Colors.red.shade700
+            : Colors.green.shade700,
+        iconEnabledColor: _transactionType == "Gave"
+            ? Colors.red.shade700
+            : Colors.green.shade700,
       ),
     );
   }

@@ -17,13 +17,13 @@ class CalenderScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title:  Text(
+        title: Text(
           "Due Dates",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Primarycolors.textDark,
-              ),
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Primarycolors.textDark,
+          ),
         ),
         centerTitle: true,
       ),
@@ -70,8 +70,10 @@ class CalenderScreen extends StatelessWidget {
                   child: ListTile(
                     title: Text(
                       person.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                          fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     subtitle: Text("Due Date: $formattedDate"),
                     trailing: Text(

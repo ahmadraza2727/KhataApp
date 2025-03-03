@@ -1,8 +1,7 @@
 import 'dart:io';
-
-import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'package:app_1/providers/database_provider.dart';
+import 'package:app_1/screens/transaction_details.dart';
 import 'package:app_1/services/auth/auth_services.dart';
 import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
@@ -32,13 +31,13 @@ class _HomeScreenState extends State<HomeScreen> {
           // Check if the file matches the recording pattern
           if (file is File && file.path.endsWith(".aac")) {
             await file.delete();
-            print("Deleted: ${file.path}");
+            // print("Deleted: ${file.path}");
           }
         }
-        print("All recordings deleted successfully.");
+        // print("All recordings deleted successfully.");
       }
     } catch (e) {
-      print("Error deleting recordings: $e");
+      // print("Error deleting recordings: $e");
     }
   }
 
@@ -172,27 +171,49 @@ class _HomeScreenState extends State<HomeScreen> {
           : transactions.length, // Show only latest 5 transactions
       itemBuilder: (context, index) {
         final transaction = transactions[index];
-        return Card(
-          color: Primarycolors.backgroundColor,
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: transaction.received ? Colors.green : Colors.red,
-              child: Icon(
-                  transaction.received
-                      ? Icons.arrow_downward
-                      : Icons.arrow_upward,
-                  color: Colors.white),
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TransactionDetailsScreen(
+                transactionId: transaction.id.toString(),
+                  personName: transaction.person?.name ?? "Unknown",
+                  amount: transaction.amount.toDouble(),
+                  date: transaction.date,
+                  reason: transaction.reason,
+                  received: transaction.received,
+                  phoneNumber: transaction.person?.phoneNumber ?? "No-Number",
+                  contactId: transaction.person!.contactId,
+                  recording: transaction.recording,
+                  person: transaction.person!,
+                ),
+              ),
+            );
+          },
+          child: Card(
+            color: Primarycolors.backgroundColor,
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor:
+                    transaction.received ? Colors.green : Colors.red,
+                child: Icon(
+                    transaction.received
+                        ? Icons.arrow_downward
+                        : Icons.arrow_upward,
+                    color: Colors.white),
+              ),
+              title: Text("PKR ${transaction.amount}",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text(
+                  "${transaction.reason}\n${transaction.date.toLocal().toString().split(' ')[0]}"),
+              trailing: Icon(Icons.receipt_long, color: Colors.grey[600]),
             ),
-            title: Text("PKR ${transaction.amount}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(
-                "${transaction.reason}\n${transaction.date.toLocal().toString().split(' ')[0]}"),
-            trailing: Icon(Icons.receipt_long, color: Colors.grey[600]),
           ),
         );
       },

@@ -92,86 +92,135 @@ class _TransactionScreenState extends State<TransactionScreen> {
                               ),
                             ],
                           ),
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            color: Colors.white,
-                            elevation: 3,
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.all(6),
-                              leading: CircleAvatar(
-                                backgroundColor: transaction.received
-                                    ? Colors.green
-                                    : Colors.red,
-                                radius: 25,
-                                child: Icon(
-                                  transaction.received
-                                      ? Icons.arrow_downward
-                                      : Icons.arrow_upward,
-                                  color: Colors.white,
-                                  size: 24,
+                          child: Hero(
+                            tag: "transaction-${transaction.id}",
+                            child: Material(
+                              type: MaterialType.transparency,
+                              child: Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                              ),
-                              title: Hero(
-                                tag: transaction.id.toString(),
-                                child: Text(
-                                  personName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14),
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Amount: Rs${amount.toString()}  ",
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade600),
+                                color: Colors.white,
+                                elevation: 3,
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.all(6),
+                                  leading: CircleAvatar(
+                                    backgroundColor: transaction.received
+                                        ? Colors.green
+                                        : Colors.red,
+                                    radius: 25,
+                                    child: Icon(
+                                      transaction.received
+                                          ? Icons.arrow_downward
+                                          : Icons.arrow_upward,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
                                   ),
-                                  Text(
-                                    date.toLocal().toString().split(' ')[0],
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade600),
+                                  title: Text(
+                                    personName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        decoration: TextDecoration.none,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14),
                                   ),
-                                ],
-                              ),
-                              // |  ${date.toLocal().toString().split(' ')[0]}",
-                              trailing: IconButton(
-                                icon: const Icon(Icons.info_outline,
-                                    color: Colors.grey),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          TransactionDetailsScreen(
-                                        personName: transaction.person?.name ??
-                                            "Unknown",
-                                        amount: transaction.amount.toDouble(),
-                                        date: transaction.date,
-                                        reason: transaction.reason,
-                                        received: transaction.received,
-                                        phoneNumber:
-                                            transaction.person?.phoneNumber ??
-                                                "No-Number",
-                                        contactId:
-                                            transaction.person!.contactId,
-                                        recording: transaction.recording,
-                                        person: transaction.person!,
+                                  subtitle: SingleChildScrollView(
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Amount: Rs${amount.toString()}  ",
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey.shade600),
+                                          ),
+                                          Text(
+                                            date
+                                                .toLocal()
+                                                .toString()
+                                                .split(' ')[0],
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey.shade600),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  );
-                                  //INFO:
-                                  // /data/user/0/com.example.app_1/app_flutter/audio_1739640953187.aac
-                                  // /data/user/0/com.example.app_1/app_flutter/audio_1739642576566.aac
-                                  // /data/user/0/com.example.app_1/app_flutter/audio_1739643602631.aac
-                                },
+                                  ),
+                                  // |  ${date.toLocal().toString().split(' ')[0]}",
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.info_outline,
+                                        color: Colors.grey),
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        PageRouteBuilder(
+                                          transitionDuration: Duration(
+                                              milliseconds:
+                                                  800), // Adjust duration as needed
+                                          pageBuilder: (context, animation,
+                                              secondaryAnimation) {
+                                            return TransactionDetailsScreen(
+                                              transactionId:
+                                                  transaction.id.toString(),
+                                              personName:
+                                                  transaction.person?.name ??
+                                                      "Unknown",
+                                              amount:
+                                                  transaction.amount.toDouble(),
+                                              date: transaction.date,
+                                              reason: transaction.reason,
+                                              received: transaction.received,
+                                              phoneNumber: transaction
+                                                      .person?.phoneNumber ??
+                                                  "No-Number",
+                                              contactId:
+                                                  transaction.person!.contactId,
+                                              recording: transaction.recording,
+                                              person: transaction.person!,
+                                            ); // Replace with your destination screen
+                                          },
+                                          transitionsBuilder: (context,
+                                              animation,
+                                              secondaryAnimation,
+                                              child) {
+                                            return FadeTransition(
+                                              opacity: animation,
+                                              child: child,
+                                            );
+                                          },
+                                        ),
+                                      );
+                                      // Navigator.push(
+                                      //   context,
+                                      //   MaterialPageRoute(
+                                      //     builder: (context) =>
+                                      //         TransactionDetailsScreen(
+                                      //       transactionId:
+                                      //           transaction.id.toString(),
+                                      //       personName:
+                                      //           transaction.person?.name ??
+                                      //               "Unknown",
+                                      //       amount: transaction.amount.toDouble(),
+                                      //       date: transaction.date,
+                                      //       reason: transaction.reason,
+                                      //       received: transaction.received,
+                                      //       phoneNumber:
+                                      //           transaction.person?.phoneNumber ??
+                                      //               "No-Number",
+                                      //       contactId:
+                                      //           transaction.person!.contactId,
+                                      //       recording: transaction.recording,
+                                      //       person: transaction.person!,
+                                      //     ),
+                                      //   ),
+                                      // );
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
                           ),

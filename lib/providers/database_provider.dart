@@ -45,7 +45,7 @@ class DatabaseProvider with ChangeNotifier {
     // print("initialzing database");
     // print("and email is ${currentUser!.email}");
     // INFO: initialize the database
-    await _khataServices.getDatabase();
+    await _khataServices.getOrOpenDatabase();
     //INFO: getting all the persons
     final persons =
         await _khataServices.getAllPersonsWithEmail(currentUser!.email);
