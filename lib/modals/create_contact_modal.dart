@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:flutter_contacts/properties/phone.dart';
-import 'package:permission_handler/permission_handler.dart';
+// import 'package:permission_handler/permission_handler.dart';
 
 class CreateContactScreen extends StatefulWidget {
   final VoidCallback onDoneModal;
@@ -26,41 +25,36 @@ class _CreateContactScreenState extends State<CreateContactScreen> {
       return;
     }
 
-    // Check and request permission explicitly
-    if (await Permission.contacts.request().isGranted) {
-      final newContact = Contact()
-        ..displayName = name
-        ..name = Name(first: name, last: "") // Ensure a valid first name
-        ..phones = [Phone(phone)];
-      try {
-        // Insert the contact
-        Contact success = await FlutterContacts.insertContact(newContact);
-        print("succes is --------------------------- $success");
+    // Request permission explicitly before proceeding
+    final permissionGranted = await FlutterContacts.requestPermission();
 
-        // if (success ) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Contact saved successfully!")),
-        );
-        widget.onDoneModal();
-        Navigator.pop(context); // Close screen
-        // } else {
-        //   if (!mounted) return;
-        //   ScaffoldMessenger.of(context).showSnackBar(
-        //     const SnackBar(content: Text("Failed to save contact")),
-        //   );
-        // }
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: ${e.toString()}")),
-        );
-      }
-    } else {
+    if (!permissionGranted) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text("Permission denied! Enable it in settings.")),
+            content:
+                Text("Contacts permission denied! Enable it in settings.")),
+      );
+      return;
+    }
+
+    final newContact = Contact()
+      ..displayName = name
+      ..name = Name(first: name, last: "")
+      ..phones = [Phone(phone)];
+
+    try {
+      await FlutterContacts.insertContact(newContact);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Contact saved successfully!")),
+      );
+      widget.onDoneModal();
+      Navigator.pop(context); // Close screen
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
       );
     }
   }

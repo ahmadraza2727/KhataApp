@@ -19,6 +19,9 @@ class AudioRecorder {
 
   Future<bool> startRecording() async {
     if (!await requestMicrophonePermission()) {
+      if (await Permission.microphone.isPermanentlyDenied) {
+        openAppSettings(); // Opens app settings for manual permission enablement
+      }
       // print("Microphone permission denied");
       return false;
     }

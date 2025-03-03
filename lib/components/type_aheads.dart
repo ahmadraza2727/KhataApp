@@ -3,8 +3,8 @@ import 'package:app_1/modals/modals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:permission_handler/permission_handler.dart';
+// import 'package:url_launcher/url_launcher.dart';
 
 class ContactTypeAhead extends StatefulWidget {
   final void Function(Contact) onContactSelected;
@@ -30,15 +30,20 @@ class _ContactTypeAheadState extends State<ContactTypeAhead> {
   }
 
   Future<List<Contact>> _fetchContacts(BuildContext context) async {
-    if (await Permission.contacts.request().isGranted) {
+    final permissionGranted = await FlutterContacts.requestPermission();
+    if (permissionGranted) {
       try {
         return await FlutterContacts.getContacts(withProperties: true);
       } catch (e) {
-        showErrorDialog(context, "Failed to load contacts");
+        if (context.mounted) {
+          showErrorDialog(context, "Failed to load contacts");
+        }
         return [];
       }
     } else {
-      showErrorDialog(context, "Permission denied");
+      if (context.mounted) {
+        showErrorDialog(context, "Permission denied");
+      }
       return [];
     }
   }

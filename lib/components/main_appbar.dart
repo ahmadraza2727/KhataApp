@@ -6,7 +6,7 @@ import 'package:app_1/providers/database_provider.dart';
 import 'package:app_1/providers/navigation_provider.dart';
 import 'package:app_1/services/auth/auth_exceptions.dart';
 import 'package:app_1/services/auth/auth_services.dart';
-import 'package:app_1/services/database/local_database_services.dart';
+// import 'package:app_1/services/database/local_database_services.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -53,6 +53,7 @@ class _MainAppBarState extends State<MainAppBar> {
         prefs.remove(user_email_preference);
         prefs.setBool(user_logged_in_preference, false);
       }
+      if(!mounted) return;
       Navigator.of(context)
           .pushNamedAndRemoveUntil(home_route, (route) => false);
     }
@@ -78,7 +79,7 @@ class _MainAppBarState extends State<MainAppBar> {
       context,
       listen: false,
     );
-    print("Building MainAppBar");
+    // print("Building MainAppBar");
 
     return Center(
       child: Consumer<NavigationProvider>(

@@ -13,11 +13,11 @@ class SearchFeild extends StatefulWidget {
 
 class _SearchFeildState extends State<SearchFeild> {
   // bool _isVisible = false; // Controls the visibility of the input field
-  TextEditingController _controller = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    print("building search widget");
+    // print("building search widget");
     final dbProvider = Provider.of<DatabaseProvider>(context, listen: false);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -36,8 +36,8 @@ class _SearchFeildState extends State<SearchFeild> {
                     child: TextField(
                       controller: _controller,
                       onChanged: (value) {
-                        print("User typed: $value");
-                        print("the value of controller is ${_controller.text}");
+                        // print("User typed: $value");
+                        // print("the value of controller is ${_controller.text}");
                         dbProvider.search(value.toString());
                         setState(() {});
                       },

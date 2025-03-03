@@ -1,45 +1,41 @@
 import 'dart:io';
-
 import 'package:app_1/components/audio_player.dart';
-import 'package:app_1/components/dialogs.dart';
 import 'package:app_1/services/audio/player.dart';
 import 'package:app_1/services/audio/recorder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:app_1/components/type_aheads.dart';
 import 'package:app_1/constants/primary_colors.dart';
 import 'dart:async';
-import 'package:audioplayers/audioplayers.dart';
+// import 'package:audioplayers/audioplayers.dart';
 import 'package:provider/provider.dart';
-// import 'package:url_launcher/url_launcher.dart';
 
-class CreateTransactionModal extends StatefulWidget {
-  final void Function(Contact) onContactSelected;
+class CreateTransactionForPersonModal extends StatefulWidget {
   final Future<bool> Function(Map<String, dynamic>) onDoneModal;
 
-  const CreateTransactionModal({
+  const CreateTransactionForPersonModal({
     super.key,
-    required this.onContactSelected,
     required this.onDoneModal,
   });
 
   @override
-  State<CreateTransactionModal> createState() => _CreateTransactionModalState();
+  State<CreateTransactionForPersonModal> createState() =>
+      _CreateTransactionForPersonModalState();
 }
 
-class _CreateTransactionModalState extends State<CreateTransactionModal> {
+class _CreateTransactionForPersonModalState
+    extends State<CreateTransactionForPersonModal> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _reasonController = TextEditingController();
   String _transactionType = "Received"; // Default value
   DateTime date = DateTime.now();
-  DateTime? selectedDate;
 
   final AudioRecorder _recorder = AudioRecorder();
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  // final AudioPlayer _audioPlayer = AudioPlayer();
   String recordingPath = "";
   bool isRecording = false;
   int recordingDuration = 0;
   Timer? _timer;
+
+  DateTime? selectedDate;
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -64,9 +60,9 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
 
   @override
   void dispose() {
-    print("disposing contact modal");
+    // print("disposing contact modal");
     if (recordingPath != "") {
-      print("deleting the recording $recordingPath");
+      // print("deleting the recording $recordingPath");
       File(recordingPath).deleteSync(); // Ensure deletion
     }
     _amountController.dispose();
@@ -77,18 +73,13 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
 
   void _startRecording() async {
     if (recordingPath != "") {
-      print("deleting recording for new recording $recordingPath");
       File f = File(recordingPath);
       f.deleteSync(); // Delete the file
       setState(() {
         recordingPath = "";
       });
     }
-    bool success = await _recorder.startRecording();
-    if (!success && mounted) {
-      showErrorDialog(context, "Microhpone permission denied");
-      return;
-    }
+    await _recorder.startRecording();
     setState(() {
       isRecording = true;
       recordingDuration = 0;
@@ -100,9 +91,7 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
         recordingDuration++;
       });
     });
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
           content: Text("Recording started..."),
@@ -122,24 +111,22 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
       isRecording = false;
     });
 
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
           content: Text("Recording saved!"), duration: Duration(seconds: 1)),
     );
   }
 
-  void _playRecording() async {
-    if (recordingPath != "") {
-      await _audioPlayer.play(DeviceFileSource(recordingPath));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("No recording available")),
-      );
-    }
-  }
+  // void _playRecording() async {
+  //   if (recordingPath != "") {
+  //     await _audioPlayer.play(DeviceFileSource(recordingPath));
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text("No recording available")),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +135,7 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
         if (didPop) return; // If already popped, do nothing
 
         if (recordingPath != "") {
-          print("deleting the recording $recordingPath");
+          // print("deleting the recording $recordingPath");
           File(recordingPath).deleteSync(); // Ensure deletion
         }
         // Navigate to another screen instead of closing the app
@@ -188,9 +175,9 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Contact Picker
-                        ContactTypeAhead(
-                          onContactSelected: widget.onContactSelected,
-                        ),
+                        // ContactTypeAhead(
+                        // onContactSelected: widget.onContactSelected,
+                        // ),
                         SizedBox(height: 16),
 
                         // Amount Input
@@ -213,7 +200,8 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                           maxLines: null, // Expands when needed
                           keyboardType: TextInputType.multiline,
                         ),
-                        //INFO: due date
+                        SizedBox(height: 16),
+
                         Padding(
                           padding: const EdgeInsets.all(10),
                           child: Column(
@@ -255,8 +243,8 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                             ],
                           ),
                         ),
-                        SizedBox(height: 16),
                         // Recording Controls
+                        SizedBox(height: 16),
                         Center(
                           child: Padding(
                             padding:
@@ -322,30 +310,30 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                                   ),
                                 ],
                               ],
-                              // if (recordingPath.isNotEmpty) ...[
-                              //   const SizedBox(height: 16),
-                              //   ElevatedButton.icon(
-                              //     onPressed: _playRecording,
-                              //     icon:
-                              //         const Icon(Icons.play_arrow, size: 24),
-                              //     label: const Text(
-                              //       "Play Recording",
-                              //       style: TextStyle(
-                              //           fontSize: 16,
-                              //           fontWeight: FontWeight.bold),
-                              //     ),
-                              //     style: ElevatedButton.styleFrom(
-                              //       backgroundColor: Colors.green,
-                              //       foregroundColor: Colors.white,
-                              //       padding: const EdgeInsets.symmetric(
-                              //           vertical: 12, horizontal: 24),
-                              //       shape: RoundedRectangleBorder(
-                              //         borderRadius: BorderRadius.circular(10),
+                              //   if (recordingPath.isNotEmpty) ...[
+                              //     const SizedBox(height: 16),
+                              //     ElevatedButton.icon(
+                              //       onPressed: _playRecording,
+                              //       icon:
+                              //           const Icon(Icons.play_arrow, size: 24),
+                              //       label: const Text(
+                              //         "Play Recording",
+                              //         style: TextStyle(
+                              //             fontSize: 16,
+                              //             fontWeight: FontWeight.bold),
                               //       ),
-                              //       elevation: 4,
+                              //       style: ElevatedButton.styleFrom(
+                              //         backgroundColor: Colors.green,
+                              //         foregroundColor: Colors.white,
+                              //         padding: const EdgeInsets.symmetric(
+                              //             vertical: 12, horizontal: 24),
+                              //         shape: RoundedRectangleBorder(
+                              //           borderRadius: BorderRadius.circular(10),
+                              //         ),
+                              //         elevation: 4,
+                              //       ),
                               //     ),
-                              //   ),
-                              // ],
+                              //   ],
                               // ],
                             ),
                           ),
@@ -370,6 +358,8 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                       padding: EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () async {
+                      // print("savinf transaction");
+                      // print("recording path is $recordingPath");
                       bool success = await widget.onDoneModal({
                         "amount": _amountController.text,
                         "transactionType":
@@ -379,18 +369,18 @@ class _CreateTransactionModalState extends State<CreateTransactionModal> {
                         "dueDate": selectedDate ?? DateTime.now(),
                         "context": context,
                       });
-                      if (success) recordingPath = "";
-                      setState(() {});
-                      // widget.setPath(null);
+
+                      // print("Success is $success");
+                      setState(() {
+                        if (success) recordingPath = "";
+                      });
                       if (!context.mounted) return;
                       Navigator.pop(context);
                     },
                     child: Text(
                       "Save Transaction",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),

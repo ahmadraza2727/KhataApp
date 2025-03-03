@@ -16,7 +16,7 @@ class _MenuOptionsState extends State<MenuOptions> {
 
   @override
   Widget build(BuildContext context) {
-    print('building menu options screen');
+    // print('building menu options screen');
     final navigationProvider = Provider.of<NavigationProvider>(context);
 
     return GestureDetector(

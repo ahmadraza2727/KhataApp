@@ -1,7 +1,7 @@
-import 'package:app_1/modals/contact_modal.dart';
 import 'package:app_1/modals/create_contact_modal.dart';
+import 'package:app_1/modals/create_transaction_for_person_modal.dart';
+import 'package:app_1/modals/create_transaction_modal.dart';
 import 'package:app_1/modals/reauthentication_modal.dart';
-import 'package:app_1/modals/transaction_for_person_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 
